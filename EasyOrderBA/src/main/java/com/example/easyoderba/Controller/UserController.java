@@ -2,30 +2,36 @@ package com.example.easyoderba.Controller;
 
 
 import com.example.easyoderba.Model.DTO.request.CreateUserReq;
+import com.example.easyoderba.Model.DTO.response.ApiResponse;
+import com.example.easyoderba.Model.DTO.response.UserResponse;
 import com.example.easyoderba.Service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/user")
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class UserController {
 
-    private final UserService userService;
+    UserService userService;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody @Valid CreateUserReq createUserReq) {
-        userService.CreateUser(createUserReq);
-        return ResponseEntity.ok(createUserReq);
+    public ApiResponse<String> register(@RequestBody @Valid CreateUserReq createUserReq) {
+        return ApiResponse.<String>builder()
+                .result(userService.CreateUser(createUserReq))
+                .build();
     }
     @GetMapping("/{id}")
     @Tag(name = "Lấy user theo id")
-    public ResponseEntity<?> getUser(@PathVariable Long id) {
-
-        return ResponseEntity.ok().body(userService.GetUserById(id));
+    public ApiResponse<UserResponse> getUser(@PathVariable Long id) {
+        return ApiResponse.<UserResponse>builder()
+                .result(userService.GetUserById(id))
+                .build();
     }
 
 }

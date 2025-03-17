@@ -5,7 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.*;
 
-@EqualsAndHashCode(callSuper = true)
+
 @Entity
 @Table(name = "tbl_table")
 @Data

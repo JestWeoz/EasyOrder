@@ -3,6 +3,7 @@ package com.example.easyoderba.Model.Entity.AuthEntity;
 
 import com.example.easyoderba.Model.Entity.BaseEntity;
 import jakarta.persistence.Entity;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.*;
@@ -20,14 +21,14 @@ import java.util.Set;
 @Entity
 @Table(name = "tbl_user")
 public class UserEntity extends BaseEntity {
-    private String username;
-    private String password;
-    private String firstName;
-    private String lastName;
-    private String email;
-    private String phone;
+    String username;
+    String password;
+    String firstName;
+    String lastName;
+    String email;
+    String phone;
 
-    @OneToMany
+    @ManyToMany
     Set<RoleEntity> roles;
 
 }

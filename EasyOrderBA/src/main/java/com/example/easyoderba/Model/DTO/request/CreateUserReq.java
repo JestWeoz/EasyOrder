@@ -9,15 +9,16 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class CreateUserReq {
-    @Size(min = 4, message = "Username must be at least 4 characters")
-    private String username;
+    @Size(min = 4, message = "USERNAME_INVALID")
+    String username;
 
-    @Size(min = 8, message = "Password must be at least 8 characters")
-    private String password;
-    private String firstName;
-    private String lastName;
-    @Email
-    private String email;
-    private String phone;
+    @Size(min = 8, message = "PASSWORD_INVALID")
+    String password;
+    String firstName;
+    String lastName;
+    @Email(message = "EMAIL_INVALID")
+    String email;
+    String phone;
 }

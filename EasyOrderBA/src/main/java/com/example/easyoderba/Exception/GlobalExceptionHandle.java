@@ -1,40 +1,43 @@
 package com.example.easyoderba.Exception;
 
+import com.example.easyoderba.Model.DTO.response.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Objects;
 
 @RestControllerAdvice
 public class GlobalExceptionHandle {
 
-    @ExceptionHandler(value = RuntimeException.class)
-    public ResponseEntity<Map<String, Object>> handleRuntimeException(RuntimeException e) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("status", HttpStatus.BAD_REQUEST.value());
-        response.put("error", "Bad Request");
-        response.put("message", e.getMessage());
+    @ExceptionHandler(value = Exception.class)
+    public ResponseEntity<ApiResponse<?>> handleException(Exception e) {
+        ErrorCode errorCode = ErrorCode.UNCAUGHT_EXCEPTION;
+        ApiResponse<?> apiResponse = new ApiResponse<>();
+        apiResponse.setCode(errorCode.getCode());
+        apiResponse.setMessage(errorCode.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(apiResponse);
+    }
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    @ExceptionHandler(value = AppException.class)
+    public ResponseEntity<?> handleAppException(AppException e) {
+        ErrorCode errorCode = e.getErrorCode();
+        ApiResponse<?> apiResponse = new ApiResponse<>();
+        apiResponse.setCode(errorCode.getCode());
+        apiResponse.setMessage(errorCode.getMessage());
+        return ResponseEntity.badRequest().body(apiResponse);
     }
 
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("status", HttpStatus.BAD_REQUEST.value());
-        response.put("error", "Validation Error");
+    public ResponseEntity<?> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+        String enumKey = Objects.requireNonNull(e.getFieldError()).getDefaultMessage();
+        ErrorCode errorCode = ErrorCode.valueOf(enumKey);
+        ApiResponse<Object> apiResponse = new ApiResponse<>();
+        apiResponse.setCode(errorCode.getCode());
+        apiResponse.setMessage(errorCode.getMessage());
 
-        Map<String, String> validationErrors = new HashMap<>();
-        for (FieldError fieldError : e.getBindingResult().getFieldErrors()) {
-            validationErrors.put(fieldError.getField(), fieldError.getDefaultMessage());
-        }
-        response.put("errors", validationErrors);
-
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        return ResponseEntity.badRequest().body(apiResponse);
     }
 }

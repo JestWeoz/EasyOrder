@@ -1,11 +1,21 @@
 package com.example.easyoderba.Model.DTO.response;
 
 
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 @Data
-public class ApiResponse <T> {
-    private int code;
-    private String message;
-    private T response;
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class ApiResponse<T> {
+    @Builder.Default
+    int code = 1000;
+
+    String message;
+    T result;
 }
+
