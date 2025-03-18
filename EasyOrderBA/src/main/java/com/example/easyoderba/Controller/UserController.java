@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/user")
 @RequiredArgsConstructor
@@ -31,6 +33,12 @@ public class UserController {
     public ApiResponse<UserResponse> getUser(@PathVariable Long id) {
         return ApiResponse.<UserResponse>builder()
                 .result(userService.GetUserById(id))
+                .build();
+    }
+    @GetMapping("/getAll")
+    public ApiResponse<List<UserResponse>> getAllUsers() {
+        return ApiResponse.<List<UserResponse>>builder()
+                .result(userService.getAllUsers())
                 .build();
     }
 

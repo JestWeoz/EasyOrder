@@ -17,7 +17,7 @@ public enum ErrorCode {
     WRONG_PASSWORD(1006, "Wrong password"),
     EMAIL_EXISTED(1007, "Email already existed"),
     EMAIL_INVALID(1008, "Email is invalid"),
-
+    UNAUTHENTICATED(1009, "Unauthenticated"),
     ;
 
 

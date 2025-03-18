@@ -7,6 +7,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.net.HttpRetryException;
 import java.util.Objects;
 
 @RestControllerAdvice
@@ -14,10 +15,9 @@ public class GlobalExceptionHandle {
 
     @ExceptionHandler(value = Exception.class)
     public ResponseEntity<ApiResponse<?>> handleException(Exception e) {
-        ErrorCode errorCode = ErrorCode.UNCAUGHT_EXCEPTION;
         ApiResponse<?> apiResponse = new ApiResponse<>();
-        apiResponse.setCode(errorCode.getCode());
-        apiResponse.setMessage(errorCode.getMessage());
+        apiResponse.setCode(9999);
+        apiResponse.setMessage(e.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(apiResponse);
     }
 
@@ -40,4 +40,5 @@ public class GlobalExceptionHandle {
 
         return ResponseEntity.badRequest().body(apiResponse);
     }
+
 }

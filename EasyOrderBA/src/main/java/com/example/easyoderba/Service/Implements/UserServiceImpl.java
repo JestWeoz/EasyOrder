@@ -3,7 +3,6 @@ package com.example.easyoderba.Service.Implements;
 import com.example.easyoderba.Exception.AppException;
 import com.example.easyoderba.Exception.ErrorCode;
 import com.example.easyoderba.Model.DTO.request.CreateUserReq;
-import com.example.easyoderba.Model.DTO.request.LoginReq;
 import com.example.easyoderba.Model.DTO.response.UserResponse;
 import com.example.easyoderba.Model.Entity.AuthEntity.UserEntity;
 import com.example.easyoderba.Repository.UserRepository;
@@ -12,9 +11,12 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.modelmapper.ModelMapper;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 
 @Service
@@ -39,19 +41,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResponseEntity<?> Login(LoginReq loginReq) {
-        UserEntity userEntity = userRepository.findUserEntityByUsername(loginReq.getUsername());
-        if (userEntity == null) {
-            return ResponseEntity.badRequest().build();
-        }
-        else {
-            if (!passwordEncoder.matches(loginReq.getPassword(), userEntity.getPassword())) {
-                return ResponseEntity.badRequest().build();
-            } else {
-                return ResponseEntity.ok(userEntity);
-            }
-        }
+    public List<UserResponse> getAllUsers() {
+        List<UserEntity> userEntities = userRepository.findAll();
+        List<UserResponse> userResponses = new ArrayList<>();
+        userEntities.forEach(entity -> {
+            userResponses.add(modelMapper.map(entity, UserResponse.class));
+        });
+        return userResponses;
     }
+
 
     @Override
     public UserResponse GetUserById(Long id) {

@@ -9,11 +9,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Entity
-@Table(name = "tbl_product")
-@Data
-@AllArgsConstructor
-@Builder
-@NoArgsConstructor
+
 public class ProductEntity extends BaseEntity {
 }
