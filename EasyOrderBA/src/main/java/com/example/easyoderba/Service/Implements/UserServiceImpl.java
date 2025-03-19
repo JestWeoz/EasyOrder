@@ -3,8 +3,11 @@ package com.example.easyoderba.Service.Implements;
 import com.example.easyoderba.Exception.AppException;
 import com.example.easyoderba.Exception.ErrorCode;
 import com.example.easyoderba.Model.DTO.request.CreateUserReq;
+import com.example.easyoderba.Model.DTO.request.UpdateUserReq;
 import com.example.easyoderba.Model.DTO.response.UserResponse;
-import com.example.easyoderba.Model.Entity.AuthEntity.UserEntity;
+import com.example.easyoderba.Model.Entity.AuthEntity.Role;
+import com.example.easyoderba.Model.Entity.AuthEntity.User;
+import com.example.easyoderba.Repository.RoleRepository;
 import com.example.easyoderba.Repository.UserRepository;
 import com.example.easyoderba.Service.UserService;
 import lombok.AccessLevel;
@@ -14,9 +17,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.*;
 
 
 @Service
@@ -26,6 +27,7 @@ public class UserServiceImpl implements UserService {
     ModelMapper modelMapper = new ModelMapper();
     UserRepository userRepository;
     PasswordEncoder passwordEncoder;
+    RoleRepository roleRepository;
 
     @Override
     public String CreateUser(CreateUserReq createUserReq) {
@@ -34,15 +36,16 @@ public class UserServiceImpl implements UserService {
             throw new AppException(ErrorCode.USER_EXISTED);
         }
 
-        UserEntity userEntity = modelMapper.map(createUserReq, UserEntity.class);
-        userEntity.setPassword(passwordEncoder.encode(userEntity.getPassword()));
-        userRepository.save(userEntity);
+        User user = modelMapper.map(createUserReq, User.class);
+
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        userRepository.save(user);
         return "Register Success";
     }
 
     @Override
     public List<UserResponse> getAllUsers() {
-        List<UserEntity> userEntities = userRepository.findAll();
+        List<User> userEntities = userRepository.findAll();
         List<UserResponse> userResponses = new ArrayList<>();
         userEntities.forEach(entity -> {
             userResponses.add(modelMapper.map(entity, UserResponse.class));
@@ -56,7 +59,24 @@ public class UserServiceImpl implements UserService {
         if (!userRepository.existsById(id)) {
             throw new AppException(ErrorCode.USER_NOT_FOUND);
         }
-        UserEntity userEntity = userRepository.findById(id).orElse(null);
-        return modelMapper.map(userEntity, UserResponse.class);
+        User user = userRepository.findById(id).orElse(null);
+        return modelMapper.map(user, UserResponse.class);
+    }
+
+    @Override
+    public String updateUser(UpdateUserReq updateUserReq) {
+        User user = userRepository.findByUsername(updateUserReq.getUsername()).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        if (updateUserReq.getPassword() != null) {
+            user.setPassword(passwordEncoder.encode(updateUserReq.getPassword()));
+        }
+        if (updateUserReq.getRoles() != null) {
+            Set<Role> roles = new HashSet<>();
+            updateUserReq.getRoles().forEach(role -> {
+                roles.add(roleRepository.findById(role).orElseThrow(() -> new AppException(ErrorCode.ROLE_INVALID)));
+            });
+            user.setRoles(roles);
+        }
+        userRepository.save(user);
+        return "Update Success";
     }
 }

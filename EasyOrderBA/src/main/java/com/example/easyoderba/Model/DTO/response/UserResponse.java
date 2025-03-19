@@ -1,11 +1,14 @@
 package com.example.easyoderba.Model.DTO.response;
 
+import com.example.easyoderba.Model.Entity.AuthEntity.Role;
+import com.example.easyoderba.Model.Entity.AuthEntity.User;
 import lombok.*;
 
 import java.io.Serializable;
+import java.util.Set;
 
 /**
- * DTO for {@link com.example.easyoderba.Model.Entity.AuthEntity.UserEntity}
+ * DTO for {@link User}
  */
 @Data
 @NoArgsConstructor
@@ -17,4 +20,6 @@ public class UserResponse implements Serializable {
     String lastName;
     String email;
     String phone;
+
+    Set<Role> roles;
 }

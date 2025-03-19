@@ -18,6 +18,7 @@ public enum ErrorCode {
     EMAIL_EXISTED(1007, "Email already existed"),
     EMAIL_INVALID(1008, "Email is invalid"),
     UNAUTHENTICATED(1009, "Unauthenticated"),
+    ROLE_INVALID(1010, "Role is invalid"),
     ;
 
 

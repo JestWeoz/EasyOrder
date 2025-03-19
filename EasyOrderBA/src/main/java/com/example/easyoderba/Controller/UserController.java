@@ -2,6 +2,7 @@ package com.example.easyoderba.Controller;
 
 
 import com.example.easyoderba.Model.DTO.request.CreateUserReq;
+import com.example.easyoderba.Model.DTO.request.UpdateUserReq;
 import com.example.easyoderba.Model.DTO.response.ApiResponse;
 import com.example.easyoderba.Model.DTO.response.UserResponse;
 import com.example.easyoderba.Service.UserService;
@@ -29,7 +30,6 @@ public class UserController {
                 .build();
     }
     @GetMapping("/{id}")
-    @Tag(name = "Lấy user theo id")
     public ApiResponse<UserResponse> getUser(@PathVariable Long id) {
         return ApiResponse.<UserResponse>builder()
                 .result(userService.GetUserById(id))
@@ -39,6 +39,12 @@ public class UserController {
     public ApiResponse<List<UserResponse>> getAllUsers() {
         return ApiResponse.<List<UserResponse>>builder()
                 .result(userService.getAllUsers())
+                .build();
+    }
+    @PostMapping("/update")
+    public ApiResponse<String> updateUser(@RequestBody  UpdateUserReq updateUserReq) {
+        return ApiResponse.<String>builder()
+                .result(userService.updateUser(updateUserReq))
                 .build();
     }
 

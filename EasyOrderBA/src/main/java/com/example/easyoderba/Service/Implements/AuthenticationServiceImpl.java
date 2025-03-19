@@ -6,6 +6,7 @@ import com.example.easyoderba.Model.DTO.request.IntrospectReq;
 import com.example.easyoderba.Model.DTO.request.LoginReq;
 import com.example.easyoderba.Model.DTO.response.AuthenticationResponse;
 import com.example.easyoderba.Model.DTO.response.IntrospectResponse;
+import com.example.easyoderba.Model.Entity.AuthEntity.User;
 import com.example.easyoderba.Repository.UserRepository;
 import com.example.easyoderba.Service.AuthenticationService;
 import com.nimbusds.jose.*;
@@ -20,13 +21,14 @@ import lombok.experimental.NonFinal;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import java.util.UUID;
+import java.util.StringJoiner;
 
 
 @Service
@@ -41,12 +43,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public AuthenticationResponse Login(LoginReq loginReq) {
-        var user = userRepository.findUserEntityByUsername(loginReq.getUsername()).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        var user = userRepository.findByUsername(loginReq.getUsername()).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         boolean authenticated = passwordEncoder.matches(loginReq.getPassword(), user.getPassword());
         if (!authenticated) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
-        var token = generateToken(loginReq.getUsername());
+        var token = generateToken(user);
         return AuthenticationResponse.builder()
                 .token(token)
                 .success(true)
@@ -67,15 +69,15 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .build();
     }
 
-    String generateToken(String username) {
+    String generateToken(User user) {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
 
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
-                .subject(username)
+                .subject(user.getUsername())
                 .issuer("EASYODERBA")
                 .issueTime(new Date())
-                .claim("customclaim", "customvalue")
-                .expirationTime(Date.from(Instant.now().plus(1, ChronoUnit.SECONDS)))
+                .claim("scope", buildScope(user))
+                .expirationTime(Date.from(Instant.now().plus(1, ChronoUnit.HOURS)))
                 .build();
         Payload payload = new Payload(jwtClaimsSet.toJSONObject());
         JWSObject jwsObject = new JWSObject(header, payload);
@@ -88,5 +90,20 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new RuntimeException(e);
         }
 
+    }
+
+    private  String  buildScope(User user) {
+        StringJoiner scopeJoiner = new StringJoiner(" ");
+        if (!CollectionUtils.isEmpty(user.getRoles())) {
+            user.getRoles().forEach(role -> {
+                scopeJoiner.add(role.getName());
+                if (!CollectionUtils.isEmpty(role.getPermissions())) {
+                    role.getPermissions().forEach(permission -> {
+                        scopeJoiner.add(permission.getName());
+                    });
+                }
+            });
+        }
+        return scopeJoiner.toString();
     }
 }
