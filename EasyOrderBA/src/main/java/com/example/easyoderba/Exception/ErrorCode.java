@@ -3,26 +3,30 @@ package com.example.easyoderba.Exception;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
 public enum ErrorCode {
-    UNCAUGHT_EXCEPTION(9999, "Uncaught exception"),
-    USER_EXISTED(1001, "User already existed"),
-    USER_NOT_FOUND(1002, "User not found"),
-    USERNAME_EXISTED(1003, "Username already existed"),
-    USERNAME_INVALID(1004, "Username is invalid"),
-    PASSWORD_INVALID(1005, "Password is invalid"),
-    WRONG_PASSWORD(1006, "Wrong password"),
-    EMAIL_EXISTED(1007, "Email already existed"),
-    EMAIL_INVALID(1008, "Email is invalid"),
-    UNAUTHENTICATED(1009, "Unauthenticated"),
-    ROLE_INVALID(1010, "Role is invalid"),
+    UNCAUGHT_EXCEPTION(9999, "Uncaught exception", HttpStatus.INTERNAL_SERVER_ERROR),
+    USER_EXISTED(1001, "User already existed", HttpStatus.BAD_REQUEST),
+    USER_NOT_FOUND(1002, "User not found", HttpStatus.NOT_FOUND),
+    USERNAME_EXISTED(1003, "Username already existed", HttpStatus.BAD_REQUEST),
+    USERNAME_INVALID(1004, "Username is invalid", HttpStatus.BAD_REQUEST),
+    PASSWORD_INVALID(1005, "Password is invalid", HttpStatus.BAD_REQUEST),
+    WRONG_PASSWORD(1006, "Wrong password", HttpStatus.BAD_REQUEST),
+    EMAIL_EXISTED(1007, "Email already existed", HttpStatus.BAD_REQUEST),
+    EMAIL_INVALID(1008, "Email is invalid", HttpStatus.BAD_REQUEST),
+    UNAUTHENTICATED(1009, "Unauthenticated", HttpStatus.UNAUTHORIZED),
+    ROLE_INVALID(1010, "Role is invalid", HttpStatus.BAD_REQUEST),
+    UNAUTHORIZED(1011, "U dont have permission", HttpStatus.FORBIDDEN),
     ;
 
 
     private int code;
     private String message;
+    private HttpStatusCode httpStatusCode;
 
 }
