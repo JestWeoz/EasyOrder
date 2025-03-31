@@ -2,8 +2,8 @@ package com.example.easyoderba.Service.Implements;
 
 import com.example.easyoderba.Exception.AppException;
 import com.example.easyoderba.Exception.ErrorCode;
-import com.example.easyoderba.Model.DTO.request.IntrospectReq;
-import com.example.easyoderba.Model.DTO.request.LoginReq;
+import com.example.easyoderba.Model.DTO.request.AuthReq.IntrospectReq;
+import com.example.easyoderba.Model.DTO.request.AuthReq.LoginReq;
 import com.example.easyoderba.Model.DTO.response.AuthenticationResponse;
 import com.example.easyoderba.Model.DTO.response.IntrospectResponse;
 import com.example.easyoderba.Model.Entity.AuthEntity.User;

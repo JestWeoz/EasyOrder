@@ -1,4 +1,4 @@
-package com.example.easyoderba.Model.DTO.response;
+package com.example.easyoderba.Model.DTO.response.AuthRes;
 
 import com.example.easyoderba.Model.Entity.AuthEntity.Role;
 import com.example.easyoderba.Model.Entity.AuthEntity.User;

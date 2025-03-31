@@ -1,4 +1,4 @@
-package com.example.easyoderba.Model.DTO.request;
+package com.example.easyoderba.Model.DTO.request.AuthReq;
 
 
 import lombok.*;

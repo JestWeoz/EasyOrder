@@ -1,6 +1,6 @@
 package com.example.easyoderba.Service.Implements;
 
-import com.example.easyoderba.Model.DTO.request.PermissionReq;
+import com.example.easyoderba.Model.DTO.request.AuthReq.PermissionReq;
 import com.example.easyoderba.Model.DTO.response.PermissionResponse;
 import com.example.easyoderba.Model.Entity.AuthEntity.Permission;
 import com.example.easyoderba.Repository.PermissionRepository;

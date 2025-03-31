@@ -1,6 +1,5 @@
-package com.example.easyoderba.Model.DTO.request;
+package com.example.easyoderba.Model.DTO.request.AuthReq;
 
-import com.example.easyoderba.Model.Entity.AuthEntity.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
 import lombok.*;

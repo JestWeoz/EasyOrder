@@ -1,14 +1,16 @@
 package com.example.easyoderba.Exception;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 
 @Getter
 @AllArgsConstructor
-@NoArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public enum ErrorCode {
     UNCAUGHT_EXCEPTION(9999, "Uncaught exception", HttpStatus.INTERNAL_SERVER_ERROR),
     USER_EXISTED(1001, "User already existed", HttpStatus.BAD_REQUEST),
@@ -25,8 +27,8 @@ public enum ErrorCode {
     ;
 
 
-    private int code;
-    private String message;
-    private HttpStatusCode httpStatusCode;
+     int code;
+     String message;
+     HttpStatusCode httpStatusCode;
 
 }

@@ -1,17 +1,14 @@
-package com.example.easyoderba.Model.DTO.request;
+package com.example.easyoderba.Model.DTO.request.AuthReq;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.util.Set;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class RoleReq {
+public class PermissionReq {
     String name;
     String description;
-    Set<Long> permissions;
 }

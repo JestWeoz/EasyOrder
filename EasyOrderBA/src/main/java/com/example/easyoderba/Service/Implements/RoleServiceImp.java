@@ -1,6 +1,6 @@
 package com.example.easyoderba.Service.Implements;
 
-import com.example.easyoderba.Model.DTO.request.RoleReq;
+import com.example.easyoderba.Model.DTO.request.AuthReq.RoleReq;
 import com.example.easyoderba.Model.DTO.response.RoleResponse;
 import com.example.easyoderba.Model.Entity.AuthEntity.Permission;
 import com.example.easyoderba.Model.Entity.AuthEntity.Role;
@@ -11,13 +11,13 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +29,7 @@ public class RoleServiceImp implements RoleService {
 
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public RoleResponse createRole(RoleReq req) {
         Role role = modelMapper.map(req, Role.class);
         Set<Permission> permissions = new HashSet<>(permissionRepository.findAllById(req.getPermissions()));

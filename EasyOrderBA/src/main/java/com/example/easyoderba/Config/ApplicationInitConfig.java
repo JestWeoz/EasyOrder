@@ -1,10 +1,15 @@
 package com.example.easyoderba.Config;
 
 import java.util.HashSet;
+import java.util.Set;
+
+import com.example.easyoderba.Model.Entity.AuthEntity.Permission;
 import com.example.easyoderba.Model.Entity.AuthEntity.Role;
 import com.example.easyoderba.Model.Entity.AuthEntity.User;
+import com.example.easyoderba.Repository.PermissionRepository;
 import com.example.easyoderba.Repository.RoleRepository;
 import com.example.easyoderba.Repository.UserRepository;
+import com.example.easyoderba.constant.PredefinedPermission;
 import com.example.easyoderba.constant.PredefinedRole;
 import lombok.NoArgsConstructor;
 import org.springframework.boot.ApplicationRunner;
@@ -22,7 +27,6 @@ import lombok.extern.slf4j.Slf4j;
 @Configuration
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-@NoArgsConstructor(access = AccessLevel.PRIVATE, force = true)
 @Slf4j
 public class ApplicationInitConfig {
 
@@ -36,18 +40,33 @@ public class ApplicationInitConfig {
 
     @Bean
 
-    ApplicationRunner applicationRunner(UserRepository userRepository, RoleRepository roleRepository) {
+    ApplicationRunner applicationRunner(UserRepository userRepository, RoleRepository roleRepository, PermissionRepository permissionRepository) {
         log.info("Initializing application.....");
         return args -> {
             if (userRepository.findByUsername(ADMIN_USER_NAME).isEmpty()) {
+                Set<Permission> permissions = new HashSet<>();
+                permissions.add(permissionRepository.save(Permission.builder()
+                        .name(PredefinedPermission.VIEW_PERMISSION)
+                        .description("View permission")
+                        .build()));
+                permissions.add(permissionRepository.save(Permission.builder()
+                        .name(PredefinedPermission.EDIT_PERMISSION)
+                        .description("Edit permission")
+                        .build()));
                 roleRepository.save(Role.builder()
-                        .name(PredefinedRole.USER_ROLE)
-                        .description("User role")
+                        .name(PredefinedRole.STAFF_ROLE)
+                        .description("Staff role")
                         .build());
 
+                roleRepository.save(Role.builder()
+                        .name(PredefinedRole.MANAGER_ROLE)
+                        .permissions(permissions)
+                        .description("Manager role")
+                        .build());
                 Role adminRole = roleRepository.save(Role.builder()
                         .name(PredefinedRole.ADMIN_ROLE)
                         .description("Admin role")
+                        .permissions(permissions)
                         .build());
 
                 var roles = new HashSet<Role>();
@@ -60,6 +79,8 @@ public class ApplicationInitConfig {
                         .build();
 
                 userRepository.save(user);
+
+
                 log.warn("admin user has been created with default password: admin, please change it");
             }
             log.info("Application initialization completed .....");

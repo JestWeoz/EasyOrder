@@ -1,6 +1,6 @@
 package com.example.easyoderba.Controller;
 
-import com.example.easyoderba.Model.DTO.request.RoleReq;
+import com.example.easyoderba.Model.DTO.request.AuthReq.RoleReq;
 import com.example.easyoderba.Model.DTO.response.ApiResponse;
 import com.example.easyoderba.Model.DTO.response.RoleResponse;
 import com.example.easyoderba.Service.RoleService;

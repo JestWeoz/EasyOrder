@@ -1,17 +1,15 @@
 package com.example.easyoderba.Controller;
 
 
-import com.example.easyoderba.Model.DTO.request.PermissionReq;
+import com.example.easyoderba.Model.DTO.request.AuthReq.PermissionReq;
 import com.example.easyoderba.Model.DTO.response.ApiResponse;
 import com.example.easyoderba.Model.DTO.response.PermissionResponse;
-import com.example.easyoderba.Model.Entity.AuthEntity.Permission;
 import com.example.easyoderba.Service.PermissionService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.*;
 
-import javax.print.DocFlavor;
 import java.util.List;
 
 @RestController

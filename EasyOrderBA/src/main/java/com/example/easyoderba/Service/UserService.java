@@ -1,9 +1,9 @@
 package com.example.easyoderba.Service;
 
 
-import com.example.easyoderba.Model.DTO.request.CreateUserReq;
-import com.example.easyoderba.Model.DTO.request.UpdateUserReq;
-import com.example.easyoderba.Model.DTO.response.UserResponse;
+import com.example.easyoderba.Model.DTO.request.AuthReq.CreateUserReq;
+import com.example.easyoderba.Model.DTO.request.AuthReq.UpdateUserReq;
+import com.example.easyoderba.Model.DTO.response.AuthRes.UserResponse;
 
 import java.util.List;
 

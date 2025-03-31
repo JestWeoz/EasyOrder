@@ -1,5 +1,21 @@
 package com.example.easyoderba.Model.Entity.ProductEntity;
 
-public class FileEntity {
+import com.example.easyoderba.Model.Entity.BaseEntity;
+import jakarta.persistence.*;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
+@Entity
+@Table(name = "file")
+@Data
+@AllArgsConstructor
+@Builder
+@NoArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class FileEntity extends BaseEntity {
+    String URL;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "productid", insertable = false, updatable = false)
+    ProductEntity product;
 }

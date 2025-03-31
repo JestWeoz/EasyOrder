@@ -1,12 +1,11 @@
 package com.example.easyoderba.Controller;
 
 
-import com.example.easyoderba.Model.DTO.request.CreateUserReq;
-import com.example.easyoderba.Model.DTO.request.UpdateUserReq;
+import com.example.easyoderba.Model.DTO.request.AuthReq.CreateUserReq;
+import com.example.easyoderba.Model.DTO.request.AuthReq.UpdateUserReq;
 import com.example.easyoderba.Model.DTO.response.ApiResponse;
-import com.example.easyoderba.Model.DTO.response.UserResponse;
+import com.example.easyoderba.Model.DTO.response.AuthRes.UserResponse;
 import com.example.easyoderba.Service.UserService;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;

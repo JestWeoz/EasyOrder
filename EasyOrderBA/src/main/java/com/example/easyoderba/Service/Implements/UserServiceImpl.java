@@ -2,9 +2,9 @@ package com.example.easyoderba.Service.Implements;
 
 import com.example.easyoderba.Exception.AppException;
 import com.example.easyoderba.Exception.ErrorCode;
-import com.example.easyoderba.Model.DTO.request.CreateUserReq;
-import com.example.easyoderba.Model.DTO.request.UpdateUserReq;
-import com.example.easyoderba.Model.DTO.response.UserResponse;
+import com.example.easyoderba.Model.DTO.request.AuthReq.CreateUserReq;
+import com.example.easyoderba.Model.DTO.request.AuthReq.UpdateUserReq;
+import com.example.easyoderba.Model.DTO.response.AuthRes.UserResponse;
 import com.example.easyoderba.Model.Entity.AuthEntity.Role;
 import com.example.easyoderba.Model.Entity.AuthEntity.User;
 import com.example.easyoderba.Repository.RoleRepository;
@@ -37,7 +37,10 @@ public class UserServiceImpl implements UserService {
         }
 
         User user = modelMapper.map(createUserReq, User.class);
-
+        HashSet<Role> roles = new HashSet<>();
+        Role role = roleRepository.findById(1L).orElseThrow(() -> new AppException(ErrorCode.ROLE_INVALID));
+        roles.add(role);
+        user.setRoles(roles);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
         return "Register Success";

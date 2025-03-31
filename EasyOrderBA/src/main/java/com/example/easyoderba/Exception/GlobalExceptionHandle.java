@@ -17,9 +17,10 @@ public class GlobalExceptionHandle {
     @ExceptionHandler(value = Exception.class)
     public ResponseEntity<ApiResponse<?>> handleException(Exception e) {
         ApiResponse<?> apiResponse = new ApiResponse<>();
-        apiResponse.setCode(9999);
-        apiResponse.setMessage(e.getMessage());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(apiResponse);
+        ErrorCode errorCode = ErrorCode.UNCAUGHT_EXCEPTION;
+        apiResponse.setCode(errorCode.getCode());
+        apiResponse.setMessage(errorCode.getMessage());
+        return ResponseEntity.status(errorCode.getHttpStatusCode()).body(apiResponse);
     }
 
     @ExceptionHandler(value = AppException.class)
@@ -51,5 +52,7 @@ public class GlobalExceptionHandle {
 
         return ResponseEntity.status(errorCode.getHttpStatusCode()).body(apiResponse);
     }
+
+
 
 }
