@@ -24,6 +24,7 @@ public enum ErrorCode {
     UNAUTHENTICATED(1009, "Unauthenticated", HttpStatus.UNAUTHORIZED),
     ROLE_INVALID(1010, "Role is invalid", HttpStatus.BAD_REQUEST),
     UNAUTHORIZED(1011, "U dont have permission", HttpStatus.FORBIDDEN),
+    CATEGORY_NOT_FOUND(1012, "Category not found", HttpStatus.NOT_FOUND),
     ;
 
 

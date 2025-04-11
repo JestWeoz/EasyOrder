@@ -1,7 +1,7 @@
 package com.example.easyoderba.Config;
 
 import com.example.easyoderba.Exception.ErrorCode;
-import com.example.easyoderba.Model.DTO.response.ApiResponse;
+import com.example.easyoderba.Model.DTO.response.AuthRes.ApiResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,7 +10,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
-import java.awt.*;
 import java.io.IOException;
 
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {

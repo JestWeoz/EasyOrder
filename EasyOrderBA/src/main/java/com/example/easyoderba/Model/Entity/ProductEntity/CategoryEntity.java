@@ -1,17 +1,17 @@
 package com.example.easyoderba.Model.Entity.ProductEntity;
 
 import com.example.easyoderba.Model.Entity.BaseEntity;
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 @Entity
 @Table(name = "category")
-@Data
+
 @AllArgsConstructor
 @Builder
 @NoArgsConstructor
@@ -19,6 +19,7 @@ import java.util.Set;
 public class CategoryEntity extends BaseEntity {
     String name;
 
-    @OneToMany
-    Set<ProductEntity> products;
+    @OneToMany(mappedBy = "category", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST}
+            , orphanRemoval = true)
+    List<ProductEntity> products = new ArrayList<>();
 }

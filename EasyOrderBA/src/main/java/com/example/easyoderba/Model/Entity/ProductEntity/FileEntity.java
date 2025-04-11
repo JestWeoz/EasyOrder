@@ -7,7 +7,7 @@ import lombok.experimental.FieldDefaults;
 
 @Entity
 @Table(name = "file")
-@Data
+
 @AllArgsConstructor
 @Builder
 @NoArgsConstructor
@@ -16,6 +16,6 @@ public class FileEntity extends BaseEntity {
     String URL;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "productid", insertable = false, updatable = false)
+    @JoinColumn(name = "product_id", insertable = false, updatable = false)
     ProductEntity product;
 }

@@ -1,14 +1,12 @@
 package com.example.easyoderba.Exception;
 
-import com.example.easyoderba.Model.DTO.response.ApiResponse;
-import org.springframework.http.HttpStatus;
+import com.example.easyoderba.Model.DTO.response.AuthRes.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.net.HttpRetryException;
 import java.util.Objects;
 
 @RestControllerAdvice

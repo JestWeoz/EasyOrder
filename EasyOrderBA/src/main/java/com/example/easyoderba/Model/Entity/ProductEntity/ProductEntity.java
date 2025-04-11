@@ -8,11 +8,9 @@ import lombok.experimental.FieldDefaults;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Table(name = "product")
-@Data
 @AllArgsConstructor
 @Builder
 @NoArgsConstructor
@@ -25,5 +23,9 @@ public class ProductEntity extends BaseEntity {
     @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST}
             , orphanRemoval = true)
     List<FileEntity> fileEntities = new ArrayList<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    CategoryEntity category;
 
 }

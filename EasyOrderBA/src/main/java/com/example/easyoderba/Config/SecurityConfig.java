@@ -25,7 +25,7 @@ public class SecurityConfig {
 
     @Value("${jwt.signerKey}")
     private String signerKey;
-    private final String [] PUBLIC_ENDPOINTS = {"/auth/**", "/user/register"};
+    private final String [] PUBLIC_ENDPOINTS = {"/auth/**", "/user/register", "/ws/**"};
     private static final String[] SWAGGER_URLS = {
             "/v2/api-docs",
             "/v3/api-docs",
@@ -59,6 +59,7 @@ public class SecurityConfig {
         httpSecurity.csrf(AbstractHttpConfigurer::disable);
         return httpSecurity.build();
     }
+
 
     @Bean
     JwtAuthenticationConverter jwtAuthenticationConverter() {

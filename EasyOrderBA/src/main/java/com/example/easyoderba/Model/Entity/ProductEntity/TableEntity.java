@@ -9,7 +9,7 @@ import lombok.experimental.FieldDefaults;
 
 @Entity
 @Table(name = "tbl")
-@Data
+
 @AllArgsConstructor
 @Builder
 @NoArgsConstructor
