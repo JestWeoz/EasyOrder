@@ -10,7 +10,16 @@
       </div>
       <div class="menu-item-price">{{ formattedPrice }} đ</div>
     </div>
-    <button class="add-button" @click="$emit('add-item')">
+    <div v-if="cartItem && cartItem.quantity > 0" class="quantity-controls">
+      <button class="quantity-btn" @click="handleUpdateQuantity(cartItem.quantity - 1)">
+        <i class="bi bi-dash"></i>
+      </button>
+      <span class="quantity">{{ cartItem.quantity }}</span>
+      <button class="quantity-btn" @click="handleUpdateQuantity(cartItem.quantity + 1)">
+        <i class="bi bi-plus"></i>
+      </button>
+    </div>
+    <button v-else class="add-button" @click="$emit('add-item')">
       <i class="bi bi-plus"></i>
     </button>
   </div>
@@ -24,11 +33,24 @@ export default {
       type: Object,
       required: true,
     },
+    cart: {
+      type: Array,
+      required: true,
+      default: () => [],
+    },
   },
-  emits: ['add-item'],
+  emits: ['add-item', 'update-quantity'],
   computed: {
     formattedPrice() {
       return this.item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+    },
+    cartItem() {
+      return this.cart.find((cartItem) => cartItem.id === this.item.id)
+    },
+  },
+  methods: {
+    handleUpdateQuantity(newQuantity) {
+      this.$emit('update-quantity', this.item.id, newQuantity)
     },
   },
 }
@@ -103,5 +125,40 @@ export default {
 
 .add-button:hover {
   background-color: #155ed8;
+}
+
+.quantity-controls {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.quantity-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background-color: #1877f2;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0;
+  transition: background-color 0.2s ease;
+}
+
+.quantity-btn:hover {
+  background-color: #155ed8;
+}
+
+.quantity {
+  font-weight: 600;
+  min-width: 24px;
+  text-align: center;
 }
 </style>

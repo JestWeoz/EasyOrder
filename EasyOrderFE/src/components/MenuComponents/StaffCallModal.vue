@@ -50,7 +50,6 @@ const showModal = () => {
     },
     (error) => {
       console.error('WebSocket connection error:', error)
-      alert('Không thể kết nối với máy chủ. Vui lòng thử lại sau.')
     }
   )
 }

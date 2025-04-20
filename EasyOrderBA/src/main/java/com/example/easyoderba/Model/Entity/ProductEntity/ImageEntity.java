@@ -6,16 +6,16 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 @Entity
-@Table(name = "file")
-
+@Table(name = "images")
 @AllArgsConstructor
 @Builder
+@Data
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class FileEntity extends BaseEntity {
-    String URL;
-
+public class ImageEntity extends BaseEntity {
+    String url;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id", insertable = false, updatable = false)
+    @JoinColumn(name = "product_id")
     ProductEntity product;
+
 }

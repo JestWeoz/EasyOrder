@@ -1,15 +1,40 @@
 <template>
-  <div class="container-fluid p-0">
-    <Header title="Bàn 37" @call-staff="showStaffModal" @request-checkout="requestCheckout" />
+  <div class="container-fluid">
+    <Header
+      title="Bàn 37"
+      @call-staff="showStaffModal"
+      @request-checkout="requestCheckout"
+      @add-to-cart="addItem"
+      v-model:isSidebarOpen="isSidebarOpen"
+      v-model:isSearchPageOpen="isSearchPageOpen"
+    />
     <ActionButtons />
-    <CategoryTabs :categories="tabs" :activeTab="activeTab" @update:tab="activeTab = $event" />
+    <CategoryTabs
+      :categories="tabs"
+      :activeTab="activeTab"
+      :isSidebarOpen="isSidebarOpen"
+      @update:tab="activeTab = $event"
+    />
 
-    <div class="container-fluid p-2">
-      <div v-for="category in categories" :key="category.id">
-        <MenuSection :items="category.products" @add-item="addItem" />
+    <div class="container-fluid p-2 pb-cart">
+      <div v-for="category in filteredCategories" :key="category.id">
+        <MenuSection
+          :items="category.products"
+          :cart="cart"
+          @add-item="addItem"
+          @update-quantity="(itemId, newQuantity) => updateQuantity(itemId, newQuantity)"
+        />
       </div>
     </div>
   </div>
+  <CartBar :cart="cart" @show-cart="isCartVisible = true" />
+  <CartSlideup
+    :cart="cart"
+    :isVisible="isCartVisible"
+    @close="isCartVisible = false"
+    @update-quantity="updateQuantity"
+    @checkout="checkout"
+  />
 </template>
 
 <script>
@@ -19,6 +44,8 @@ import Header from '@/components/MenuComponents/Header.vue'
 import ActionButtons from '@/components/MenuComponents/ActionButtons.vue'
 import CategoryTabs from '@/components/MenuComponents/CategoryTabs.vue'
 import MenuSection from '@/components/MenuComponents/MenuSelection.vue'
+import CartSlideup from '@/components/MenuComponents/CartSlideup.vue'
+import CartBar from '@/components/MenuComponents/CartBar.vue'
 import { sendMessage } from '@/utils/websocket'
 
 export default {
@@ -28,27 +55,29 @@ export default {
     ActionButtons,
     CategoryTabs,
     MenuSection,
+    CartSlideup,
+    CartBar,
   },
   setup() {
     const activeTab = ref('all')
     const cart = ref([])
     const categories = ref([])
     const tabs = ref([{ id: 'all', name: 'Tất cả' }])
+    const isSidebarOpen = ref(false)
+    const isCartVisible = ref(false)
+    const isSearchPageOpen = ref(false)
 
-    const filteredProducts = computed(() => {
-      if (activeTab.value === 'all') {
-        return categories.value
-      }
-      return categories.value.filter((cat) => cat.id === activeTab.value)
+    const allProducts = computed(() => {
+      return categories.value.reduce((acc, category) => {
+        return acc.concat(category.products || [])
+      }, [])
     })
 
     const getMenu = async () => {
       try {
         const response = await axios.get('http://localhost:8081/menu')
-        console.log(response.data)
         categories.value = response.data.result.categories
         tabs.value = [{ id: 'all', name: 'Tất cả' }, ...response.data.result.categories]
-        console.log(tabs.value)
       } catch (error) {
         console.error('Lỗi khi lấy dữ liệu menu:', error)
       }
@@ -59,7 +88,7 @@ export default {
     })
 
     const addItem = (item) => {
-      const existingItem = cart.value.find((cartItem) => cartItem.name === item.name)
+      const existingItem = cart.value.find((cartItem) => cartItem.id === item.id)
 
       if (existingItem) {
         existingItem.quantity += 1
@@ -69,9 +98,27 @@ export default {
           quantity: 1,
         })
       }
+    }
 
-      console.log('Item added to cart:', item.name)
-      console.log('Current cart:', cart.value)
+    const updateQuantity = (itemId, newQuantity) => {
+      console.log(cart.value)
+      const existingItem = cart.value.find((cartItem) => cartItem.id === itemId)
+
+      if (existingItem) {
+        if (newQuantity <= 0) {
+          cart.value = cart.value.filter((cartItem) => cartItem.id !== itemId)
+          if (cart.value.length === 0) {
+            isCartVisible.value = false
+          }
+        } else {
+          existingItem.quantity = newQuantity
+        }
+      }
+    }
+
+    const checkout = () => {
+      // Xử lý đặt món tại đây
+      console.log('Đặt món:', cart.value)
     }
 
     const showStaffModal = () => {
@@ -95,17 +142,40 @@ export default {
       }
     }
 
+    const filteredCategories = computed(() => {
+      if (activeTab.value === 'all') {
+        return categories.value
+      }
+      return categories.value.filter((category) => category.id === activeTab.value)
+    })
+
     return {
       activeTab,
       addItem,
       cart,
-      categories: filteredProducts,
+      categories,
       tabs,
-      getMenu,
       showStaffModal,
       requestCheckout,
+      isSidebarOpen,
+      isSearchPageOpen,
+      isCartVisible,
+      updateQuantity,
+      checkout,
+      filteredCategories,
+      allProducts,
     }
   },
 }
 </script>
+
+<style>
+.container-fluid {
+  padding-top: 60px;
+}
+
+.pb-cart {
+  padding-bottom: 60px !important;
+}
+</style>
 

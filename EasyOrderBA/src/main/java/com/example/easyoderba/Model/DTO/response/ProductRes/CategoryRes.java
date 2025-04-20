@@ -12,6 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CategoryRes {
+    Long id;
     List<ProductRes> products;
     String name;
 }

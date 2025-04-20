@@ -1,5 +1,5 @@
 <template>
-  <div class="row mt-4 px-2">
+  <div class="row custom-margin-top px-2">
     <div class="col-6 pe-1">
       <button class="btn btn-outline-primary w-100 fw-bold" @click="showStaffModal">
         <i class="bi bi-check-circle me-1"></i>
@@ -57,6 +57,10 @@ export default {
 </script>
 
 <style scoped>
+.custom-margin-top {
+  margin-top: 1rem !important;
+}
+
 .btn-outline-primary {
   background-color: #ffffff !important;
   border-color: #0d6efd !important;

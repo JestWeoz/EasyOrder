@@ -11,14 +11,13 @@ import java.util.Set;
 
 @Entity
 @Table(name = "category")
-
 @AllArgsConstructor
 @Builder
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@Data
 public class CategoryEntity extends BaseEntity {
     String name;
-
     @OneToMany(mappedBy = "category", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST}
             , orphanRemoval = true)
     List<ProductEntity> products = new ArrayList<>();

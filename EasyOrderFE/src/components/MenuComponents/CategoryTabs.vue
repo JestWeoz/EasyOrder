@@ -44,6 +44,12 @@ export default {
   border-bottom: none;
   font-weight: bold;
   font-size: 13px;
+  position: sticky;
+  top: 60px; /* Chiều cao của header */
+  z-index: 2;
+  background-color: white;
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
 
 .nav-tabs .nav-link {

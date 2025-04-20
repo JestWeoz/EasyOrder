@@ -13,6 +13,7 @@ import java.util.List;
 @Table(name = "product")
 @AllArgsConstructor
 @Builder
+@Data
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ProductEntity extends BaseEntity {
@@ -22,7 +23,7 @@ public class ProductEntity extends BaseEntity {
 
     @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST}
             , orphanRemoval = true)
-    List<FileEntity> fileEntities = new ArrayList<>();
+    List<ImageEntity> imageEntities= new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
