@@ -1,6 +1,6 @@
 <template>
   <div class="call-staff-messages">
-    <h1>Tin nhắn từ CallStaff</h1>
+    <h1>Tin nhắn</h1>
     <div class="messages-container">
       <div v-if="messages.length === 0" class="no-messages">Chưa có tin nhắn nào</div>
       <div v-else class="message-list">

@@ -1,33 +1,39 @@
 <template>
-  <div class="container-fluid">
-    <Header
-      title="Bàn 37"
-      @call-staff="showStaffModal"
-      @request-checkout="requestCheckout"
-      @add-to-cart="addItem"
-      v-model:isSidebarOpen="isSidebarOpen"
-      v-model:isSearchPageOpen="isSearchPageOpen"
-    />
-    <ActionButtons />
-    <CategoryTabs
-      :categories="tabs"
-      :activeTab="activeTab"
-      :isSidebarOpen="isSidebarOpen"
-      @update:tab="activeTab = $event"
-    />
-
-    <div class="container-fluid p-2 pb-cart">
-      <div v-for="category in filteredCategories" :key="category.id">
-        <MenuSection
-          :items="category.products"
-          :cart="cart"
-          @add-item="addItem"
-          @update-quantity="(itemId, newQuantity) => updateQuantity(itemId, newQuantity)"
+  <div class="page-wrapper">
+    <div class="content-wrapper">
+      <div class="container-fluid">
+        <Header
+          title="Bàn 37"
+          @call-staff="showStaffModal"
+          @request-checkout="requestCheckout"
+          @add-to-cart="addItem"
+          v-model:isSidebarOpen="isSidebarOpen"
+          v-model:isSearchPageOpen="isSearchPageOpen"
         />
+        <ActionButtons />
+        <CategoryTabs
+          :categories="tabs"
+          :activeTab="activeTab"
+          :isSidebarOpen="isSidebarOpen"
+          @update:tab="activeTab = $event"
+        />
+
+        <div class="container-fluid p-2">
+          <div v-for="category in filteredCategories" :key="category.id">
+            <MenuSection
+              :items="category.products"
+              :cart="cart"
+              @add-item="addItem"
+              @update-quantity="(itemId, newQuantity) => updateQuantity(itemId, newQuantity)"
+            />
+          </div>
+        </div>
       </div>
     </div>
+    <div class="cart-wrapper">
+      <CartBar :cart="cart" @show-cart="isCartVisible = true" />
+    </div>
   </div>
-  <CartBar :cart="cart" @show-cart="isCartVisible = true" />
   <CartSlideup
     :cart="cart"
     :isVisible="isCartVisible"
@@ -40,12 +46,12 @@
 <script>
 import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
-import Header from '@/components/MenuComponents/Header.vue'
-import ActionButtons from '@/components/MenuComponents/ActionButtons.vue'
-import CategoryTabs from '@/components/MenuComponents/CategoryTabs.vue'
-import MenuSection from '@/components/MenuComponents/MenuSelection.vue'
-import CartSlideup from '@/components/MenuComponents/CartSlideup.vue'
-import CartBar from '@/components/MenuComponents/CartBar.vue'
+import Header from '@/components/menu/Header.vue'
+import ActionButtons from '@/components/menu/ActionButtons.vue'
+import CategoryTabs from '@/components/menu/CategoryTabs.vue'
+import MenuSection from '@/components/menu/MenuSelection.vue'
+import CartSlideup from '@/components/menu/CartSlideup.vue'
+import CartBar from '@/components/menu/CartBar.vue'
 import { sendMessage } from '@/utils/websocket'
 
 export default {
@@ -170,12 +176,24 @@ export default {
 </script>
 
 <style>
+.page-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.content-wrapper {
+  flex: 1;
+}
+
 .container-fluid {
   padding-top: 60px;
 }
 
-.pb-cart {
-  padding-bottom: 60px !important;
+.cart-wrapper {
+  width: 100%;
+  background-color: white;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
 }
 </style>
 
