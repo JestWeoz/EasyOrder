@@ -7,6 +7,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @Entity
@@ -28,5 +29,8 @@ public class ProductEntity extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     CategoryEntity category;
+
+    @OneToMany(mappedBy = "product")
+    private Collection<OrderItemEntity> orderItems;
 
 }

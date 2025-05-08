@@ -11,7 +11,7 @@
         <i class="bi bi-search"></i>
       </button>
       <button class="btn p-0 fs-5">
-        <i class="bi bi-basket"></i>
+        <i class="bi bi-basket" @click="toggleOrderPage"></i>
       </button>
     </div>
     <SidebarMenu
@@ -25,17 +25,24 @@
       @update:isOpen="$emit('update:isSearchPageOpen', $event)"
       @add-to-cart="$emit('add-to-cart', $event)"
     />
+    <OrderPage
+      :isOpen="isOrderPageOpen"
+      @update:isOpen="$emit('update:isOrderPageOpen', $event)"
+      @go-home="$emit('go-home')"
+    />
   </div>
 </template>
   
 <script>
 import SidebarMenu from './SidebarMenu.vue'
 import SearchPage from './SearchPage.vue'
+import OrderPage from './OrderPage.vue'
 export default {
   name: 'HeaderComponent',
   components: {
     SidebarMenu,
     SearchPage,
+    OrderPage,
   },
   props: {
     title: {
@@ -50,6 +57,10 @@ export default {
       type: Boolean,
       required: true,
     },
+    isOrderPageOpen: {
+      type: Boolean,
+      required: true,
+    },
   },
   methods: {
     toggleSidebar() {
@@ -58,6 +69,9 @@ export default {
     toggleSearchPage() {
       this.$emit('update:isSearchPageOpen', !this.isSearchPageOpen)
     },
+    toggleOrderPage() {
+      this.$emit('update:isOrderPageOpen', !this.isOrderPageOpen)
+    },
   },
   emits: [
     'call-staff',
@@ -65,6 +79,9 @@ export default {
     'update:isSidebarOpen',
     'update:isSearchPageOpen',
     'add-to-cart',
+    'update:isOrderPageOpen',
+    'update-quantity',
+    'go-home',
   ],
 }
 </script>

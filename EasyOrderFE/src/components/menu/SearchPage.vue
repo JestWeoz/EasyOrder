@@ -3,7 +3,7 @@
   <div class="sidebar" :class="{ open: isOpen }">
     <div class="search-header">
       <h2 class="search-title">Tìm kiếm</h2>
-      <button class="btn p-0 close-btn" @click="close">
+      <button class="btn p-0 fs-5 close-btn" @click="close">
         <i class="bi bi-x-lg"></i>
       </button>
     </div>

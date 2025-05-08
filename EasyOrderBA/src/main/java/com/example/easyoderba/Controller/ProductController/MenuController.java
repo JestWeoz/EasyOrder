@@ -50,5 +50,17 @@ public class MenuController {
                 .result(productService.addProduct(productReq))
                 .build();
     }
+    @DeleteMapping("/product")
+    public ApiResponse<String> deleteProduct(@RequestParam Long id) throws IOException {
+        return ApiResponse.<String>builder()
+                .result(productService.DeleteProduct(id))
+                .build();
+    }
+    @PutMapping("/product")
+    public ApiResponse<String> updateProduct(ProductReq productReq) throws IOException {
+        return ApiResponse.<String>builder()
+                .result(productService.updateProduct(productReq))
+                .build();
+    }
 
 }

@@ -3,16 +3,14 @@ package com.example.easyoderba.Model.DTO.response.ProductRes;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.util.List;
+
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class TableRes {
-    Long id;
-    String name;
-    Long capacity;
-    Long status;
-    String description;
-    String url;
+public class OrderItemRes {
+    ProductRes product;
+    int quantity;
 }

@@ -1,11 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import MenuView from '../views/MenuView.vue'
-import CallStaffMessagesView from '../views/CallStaffMessagesView.vue'
 import AdminView from '../views/AdminView.vue'
 import MenuManagement from '../components/admin/MenuManagement.vue'
 import TableManagement from '../components/admin/TableManagement.vue'
 import StaffManagement from '../components/admin/StaffManagement.vue'
-
+import ServiceStaffView from '../views/SeviceStaff.vue'
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
     routes: [
@@ -15,9 +14,9 @@ const router = createRouter({
             component: MenuView
         },
         {
-            path: '/callstaff-messages',
-            name: 'CallStaffMessages',
-            component: CallStaffMessagesView
+            path: '/service-staff',
+            name: 'ServiceStaff',
+            component: ServiceStaffView
         },
         {
             path: '/admin',

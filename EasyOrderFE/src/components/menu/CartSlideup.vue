@@ -33,12 +33,19 @@
         </div>
       </div>
     </div>
+    <div class="cart-note">
+      <textarea
+        v-model="note"
+        placeholder="Nhập ghi chú cho đơn hàng của bạn..."
+        class="note-input"
+      ></textarea>
+    </div>
     <div class="cart-footer">
       <div class="total">
         <span>Tổng cộng</span>
         <span class="total-price">{{ formatPrice(totalPrice) }}đ</span>
       </div>
-      <button class="checkout-btn" @click="$emit('checkout')">Đặt món</button>
+      <button class="checkout-btn" @click="$emit('checkout', note)">Đặt món</button>
     </div>
   </div>
 </template>
@@ -67,6 +74,11 @@ export default {
     },
   },
   emits: ['close', 'update-quantity', 'checkout'],
+  data() {
+    return {
+      note: '',
+    }
+  },
 }
 </script>
 
@@ -214,6 +226,30 @@ export default {
   border: none;
   border-radius: 8px;
   font-weight: 600;
+}
+
+.cart-note {
+  padding: 16px;
+  border-top: 1px solid #eee;
+}
+
+.note-input {
+  width: 100%;
+  min-height: 80px;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  resize: none;
+  font-size: 14px;
+}
+
+.note-input:focus {
+  outline: none;
+  border-color: #1877f2;
+}
+
+.note-input::placeholder {
+  color: #999;
 }
 
 /* Xóa các animation cũ */

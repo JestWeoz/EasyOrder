@@ -50,6 +50,28 @@ public class ProductService {
         }
         return "oke";
     }
+    public String updateProduct(ProductReq productReq) throws IOException {
+        ProductEntity product = productRepository.findById(productReq.getId()).orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+        product.setPrice(productReq.getPrice());
+        product.setCategory(categoryRepository.findById(productReq.getCategoryId()).orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND)));
+        product.setDescription(productReq.getDescription());
+        product.setName(productReq.getName());
+        if (productReq.getImages() != null) {
+            List<MultipartFile> images = productReq.getImages();
+            for (MultipartFile image : images) {
+                Map result = cloudinaryService.uploadFile(image);
+                ImageEntity imageEntity = ImageEntity.builder()
+                        .url(result.get("url").toString())
+                        .product(product)
+                        .build();
+                imageRepository.save(imageEntity);
+            }
+        }
+        productRepository.save(product);
+        return "Success";
+    }
+
+
     public List<ProductRes> findByParam(String keyword) throws IOException {
         List<ProductRes> productResList = new ArrayList<>();
         List<ProductEntity> productEntities = productRepository.findByCustom(keyword);
@@ -69,6 +91,10 @@ public class ProductService {
             productResList.add(productRes);
         }
         return productResList;
+    }
+    public String DeleteProduct(Long id) throws IOException {
+        productRepository.deleteById(id);
+        return "Success";
     }
 
 }

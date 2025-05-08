@@ -1,6 +1,5 @@
 package com.example.easyoderba.Model.DTO.request.ProductReq;
 
-
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -9,10 +8,7 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class TableReq {
-    Long id;
-    Long capacity;
-    Long status;
-    String description;
-    String name;
+public class OrderItemReq {
+    Long productId;
+    int quantity;
 }

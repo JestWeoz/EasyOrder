@@ -12,14 +12,14 @@ import java.util.Objects;
 @RestControllerAdvice
 public class GlobalExceptionHandle {
 
-    @ExceptionHandler(value = Exception.class)
-    public ResponseEntity<ApiResponse<?>> handleException(Exception e) {
-        ApiResponse<?> apiResponse = new ApiResponse<>();
-        ErrorCode errorCode = ErrorCode.UNCAUGHT_EXCEPTION;
-        apiResponse.setCode(errorCode.getCode());
-        apiResponse.setMessage(errorCode.getMessage());
-        return ResponseEntity.status(errorCode.getHttpStatusCode()).body(apiResponse);
-    }
+//    @ExceptionHandler(value = Exception.class)
+//    public ResponseEntity<ApiResponse<?>> handleException(Exception e) {
+//        ApiResponse<?> apiResponse = new ApiResponse<>();
+//        ErrorCode errorCode = ErrorCode.UNCAUGHT_EXCEPTION;
+//        apiResponse.setCode(errorCode.getCode());
+//        apiResponse.setMessage(errorCode.getMessage());
+//        return ResponseEntity.status(errorCode.getHttpStatusCode()).body(apiResponse);
+//    }
 
     @ExceptionHandler(value = AppException.class)
     public ResponseEntity<?> handleAppException(AppException e) {

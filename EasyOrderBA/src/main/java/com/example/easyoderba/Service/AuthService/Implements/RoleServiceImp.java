@@ -29,7 +29,7 @@ public class RoleServiceImp implements RoleService {
 
 
     @Override
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('Edit')")
     public RoleResponse createRole(RoleReq req) {
         Role role = modelMapper.map(req, Role.class);
         Set<Permission> permissions = new HashSet<>(permissionRepository.findAllById(req.getPermissions()));
@@ -39,6 +39,7 @@ public class RoleServiceImp implements RoleService {
     }
 
     @Override
+    @PreAuthorize("hasAuthority('View')")
     public List<RoleResponse> getAllRoles() {
         List<Role> roles = roleRepository.findAll();
         List<RoleResponse> roleResponses = new ArrayList<>();

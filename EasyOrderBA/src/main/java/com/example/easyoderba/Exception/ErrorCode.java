@@ -25,6 +25,9 @@ public enum ErrorCode {
     ROLE_INVALID(1010, "Role is invalid", HttpStatus.BAD_REQUEST),
     UNAUTHORIZED(1011, "U dont have permission", HttpStatus.FORBIDDEN),
     CATEGORY_NOT_FOUND(1012, "Category not found", HttpStatus.NOT_FOUND),
+    PRODUCT_NOT_FOUND(1013, "Product not found", HttpStatus.NOT_FOUND),
+    TABLE_NOT_FOUND(1014, "Table not found", HttpStatus.NOT_FOUND),
+    ORDER_NOT_FOUND(1015, "Order not found", HttpStatus.NOT_FOUND),
     ;
 
 
