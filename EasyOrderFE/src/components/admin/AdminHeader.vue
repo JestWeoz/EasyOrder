@@ -93,9 +93,9 @@
                 <hr class="dropdown-divider" />
               </li>
               <li>
-                <a class="dropdown-item"
-                  ><i class="icon-mid bi bi-box-arrow-left me-2"></i> Logout</a
-                >
+                <a class="dropdown-item" @click="logout">
+                  <i class="icon-mid bi bi-box-arrow-left me-2"></i> Logout
+                </a>
               </li>
             </ul>
           </div>
@@ -113,6 +113,10 @@ export default {
   methods: {
     handleMailClick() {
       console.log('Mail clicked')
+    },
+    logout() {
+      localStorage.removeItem('token')
+      this.$router.push('/login')
     },
   },
 }

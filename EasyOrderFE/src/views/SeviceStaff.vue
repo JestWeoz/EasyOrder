@@ -2,7 +2,7 @@
   <div class="container-fluid admin-container p-0">
     <ServiceStaffSideBar @toggle-sidebar="toggleSidebar" :active-component="currentRouteName" />
     <div id="main" class="layout-navbar">
-      <StaffServiceHeader @toggle-sidebar="toggleSidebar" />
+      <StaffServiceHeader @toggle-sidebar="toggleSidebar" @logout="logout" />
       <DashBoard />
     </div>
   </div>

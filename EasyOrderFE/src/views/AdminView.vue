@@ -2,7 +2,7 @@
   <div class="container-fluid admin-container p-0">
     <AdminSidebar @toggle-sidebar="toggleSidebar" :active-component="currentRouteName" />
     <div id="main" class="layout-navbar">
-      <AdminHeader @toggle-sidebar="toggleSidebar" />
+      <AdminHeader @toggle-sidebar="toggleSidebar" @logout="logout" />
       <router-view></router-view>
     </div>
   </div>
@@ -12,6 +12,7 @@
 import AdminSidebar from '@/components/admin/AdminSidebar.vue'
 import AdminHeader from '@/components/admin/AdminHeader.vue'
 import { useRoute } from 'vue-router'
+import { disconnectWebSocket } from '@/utils/websocket'
 
 export default {
   name: 'AdminView',
@@ -38,9 +39,25 @@ export default {
         new PerfectScrollbar('.sidebar-wrapper')
       }
     },
+    getUserByToken(token) {
+      request
+        .get('/api/user', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .then((res) => {
+          console.log(res)
+        })
+    },
     toggleSidebar() {
       const sidebar = document.getElementById('sidebar')
       sidebar.classList.toggle('active')
+    },
+    logout() {
+      disconnectWebSocket()
+      localStorage.removeItem('token')
+      this.$router.push('/login')
     },
   },
 }
