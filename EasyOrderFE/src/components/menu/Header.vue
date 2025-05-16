@@ -29,9 +29,10 @@
       :isOpen="isOrderPageOpen"
       @update:isOpen="$emit('update:isOrderPageOpen', $event)"
       @go-home="$emit('go-home')"
+      :tableId="tableId"
     />
   </div>
-</template>
+</template> 
   
 <script>
 import SidebarMenu from './SidebarMenu.vue'
@@ -59,6 +60,10 @@ export default {
     },
     isOrderPageOpen: {
       type: Boolean,
+      required: true,
+    },
+    tableId: {
+      type: Number,
       required: true,
     },
   },

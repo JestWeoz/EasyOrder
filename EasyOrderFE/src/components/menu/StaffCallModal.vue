@@ -34,6 +34,8 @@ import { connectWebSocket, sendMessage, disconnectWebSocket } from '@/utils/webs
 const isOpen = ref(false)
 const staffMessage = ref('')
 const textareaRef = ref(null)
+const tableId = ref(null)
+const tableInfo = ref({})
 
 onUnmounted(() => {
   disconnectWebSocket()
@@ -62,7 +64,8 @@ const closeModal = () => {
 const sendStaffRequest = () => {
   if (staffMessage.value.trim()) {
     const message = {
-      tableId: '37', // Thay thế bằng ID bàn thực tế
+      tableId: tableInfo.value.name,
+
       message: staffMessage.value,
       type: 'STAFF_CALL',
     }
@@ -81,6 +84,8 @@ const sendStaffRequest = () => {
 defineExpose({
   showModal,
   closeModal,
+  tableId,
+  tableInfo,
 })
 </script>
 

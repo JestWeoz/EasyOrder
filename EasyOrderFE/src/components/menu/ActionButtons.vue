@@ -27,16 +27,31 @@ export default {
   components: {
     StaffCallModal,
   },
-  setup() {
+  props: {
+    tableId: {
+      type: [String, Number],
+      required: true,
+    },
+    tableInfo: {
+      type: Object,
+      default: () => ({}),
+    },
+  },
+  setup(props) {
     const staffModalRef = ref(null)
 
     const showStaffModal = () => {
-      staffModalRef.value.showModal()
+      if (staffModalRef.value) {
+        staffModalRef.value.tableId = props.tableId
+        staffModalRef.value.tableInfo = props.tableInfo
+        staffModalRef.value.showModal()
+      }
     }
 
     const requestCheckout = () => {
       const message = {
-        tableId: '37', // Thay thế bằng ID bàn thực tế
+        tableId: props.tableId,
+        tableName: props.tableInfo.name,
         type: 'CHECKOUT_REQUEST',
       }
 

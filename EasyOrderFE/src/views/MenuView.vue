@@ -3,16 +3,18 @@
     <div class="content-wrapper">
       <div class="container-fluid">
         <Header
-          title="Bàn 37"
+          :title="`${tableInfo.name || tableId}`"
           :cart="cart"
-          @call-staff="showStaffModal"
+          :tableId="tableId"
+          @call-staff="showStaffModal(tableId)"
           @request-checkout="requestCheckout"
           @add-to-cart="addItem"
+          @get-order="getOrder"
           v-model:isSidebarOpen="isSidebarOpen"
           v-model:isSearchPageOpen="isSearchPageOpen"
           v-model:isOrderPageOpen="isOrderPageOpen"
         />
-        <ActionButtons />
+        <ActionButtons :tableId="tableId" :tableInfo="tableInfo" />
         <CategoryTabs
           :categories="tabs"
           :activeTab="activeTab"
@@ -43,6 +45,8 @@
     @update-quantity="updateQuantity"
     @checkout="checkout"
   />
+  <OrderPage v-model:isOpen="isOrderPageOpen" :tableId="tableId" />
+  <StaffCallModal ref="staffModalRef" />
   <button v-show="showScrollTop" @click="scrollToTop" class="scroll-top-btn">
     <i class="bi bi-arrow-up-short"></i>
   </button>
@@ -62,7 +66,7 @@
 </template>
 
 <script>
-import { ref, onMounted, computed, onUnmounted } from 'vue'
+import { ref, onMounted, computed, onUnmounted, watch } from 'vue'
 import axios from 'axios'
 import Header from '@/components/menu/Header.vue'
 import ActionButtons from '@/components/menu/ActionButtons.vue'
@@ -70,7 +74,10 @@ import CategoryTabs from '@/components/menu/CategoryTabs.vue'
 import MenuSection from '@/components/menu/MenuSelection.vue'
 import CartSlideup from '@/components/menu/CartSlideup.vue'
 import CartBar from '@/components/menu/CartBar.vue'
+import OrderPage from '@/components/menu/OrderPage.vue'
+import StaffCallModal from '@/components/menu/StaffCallModal.vue'
 import { sendMessage } from '@/utils/websocket'
+import { useRoute } from 'vue-router'
 
 export default {
   name: 'App',
@@ -81,6 +88,8 @@ export default {
     MenuSection,
     CartSlideup,
     CartBar,
+    OrderPage,
+    StaffCallModal,
   },
   setup() {
     const activeTab = ref('all')
@@ -93,6 +102,10 @@ export default {
     const isOrderPageOpen = ref(false)
     const showScrollTop = ref(false)
     const order = ref([])
+    const route = useRoute()
+    const tableId = Number(route.query.idTable)
+    const tableInfo = ref({})
+    const staffModalRef = ref(null)
 
     const allProducts = computed(() => {
       return categories.value.reduce((acc, category) => {
@@ -109,23 +122,31 @@ export default {
         console.error('Lỗi khi lấy dữ liệu menu:', error)
       }
     }
-    const getOrder = async () => {
+
+    const getTable = async () => {
       try {
-        const response = await axios.get('http://localhost:8081/order', {
+        const response = await axios.get('http://localhost:8081/table', {
           params: {
-            tableId: 1,
+            tableId: tableId,
           },
         })
-        order.value = response.data.result
+        tableInfo.value = response.data.result
+        console.log('Thông tin bàn:', tableInfo.value)
       } catch (error) {
-        console.error('Lỗi khi lấy dữ liệu đơn hàng:', error)
+        console.error('Lỗi khi lấy thông tin bàn:', error)
       }
     }
 
     onMounted(async () => {
+      await getTable()
       await getMenu()
-      await getOrder()
       window.addEventListener('scroll', handleScroll)
+    })
+
+    watch(isOrderPageOpen, (newValue) => {
+      if (newValue === true) {
+        getOrder()
+      }
     })
 
     onUnmounted(() => {
@@ -168,7 +189,7 @@ export default {
       }))
 
       const orderRequest = {
-        tableId: 1, // Số bàn cố định
+        tableId: tableId,
         orderItems: orderItems,
         totalAmount: cart.value.reduce((total, item) => total + item.price * item.quantity, 0),
         status: 'PENDING',
@@ -182,7 +203,7 @@ export default {
       try {
         const response = await axios.post('http://localhost:8081/order', orderRequest)
         console.log(response)
-        cart.value = [] // Xóa giỏ hàng sau khi đặt món thành công
+        cart.value = []
         isCartVisible.value = false
       } catch (error) {
         console.error('Lỗi khi đặt món:', error)
@@ -190,17 +211,18 @@ export default {
       }
     }
 
-    const showStaffModal = () => {
-      const staffModalRef = document.querySelector('#staffModal')
-      if (staffModalRef) {
-        const modal = new bootstrap.Modal(staffModalRef)
-        modal.show()
+    const showStaffModal = (tableId) => {
+      if (staffModalRef.value) {
+        staffModalRef.value.tableId = tableId
+        staffModalRef.value.tableInfo = tableInfo.value
+        staffModalRef.value.showModal()
       }
     }
 
     const requestCheckout = () => {
       const message = {
-        tableId: '37',
+        tableId: tableId,
+        tableName: tableInfo.value.name,
         type: 'CHECKOUT_REQUEST',
       }
 
@@ -229,6 +251,18 @@ export default {
       })
     }
 
+    const getOrder = async () => {
+      try {
+        const response = await axios.get('http://localhost:8081/order', {
+          params: {
+            tableId: tableId,
+          },
+        })
+        order.value = response.data.result
+      } catch (error) {
+        console.error('Lỗi khi lấy dữ liệu đơn hàng:', error)
+      }
+    }
     return {
       activeTab,
       addItem,
@@ -247,6 +281,10 @@ export default {
       allProducts,
       showScrollTop,
       scrollToTop,
+      getOrder,
+      tableId,
+      tableInfo,
+      staffModalRef,
     }
   },
 }

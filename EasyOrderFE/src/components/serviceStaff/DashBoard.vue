@@ -1,5 +1,5 @@
 <template>
-  <div class="content-wrapper">
+  <div class="dashboard">
     <div class="row">
       <!-- Thông báo gọi nhân viên -->
       <div class="col-md-6">
@@ -14,7 +14,7 @@
             <div v-else class="messages-container">
               <div v-for="message in messages" :key="message.id" class="message-item">
                 <div class="message-header">
-                  <span class="badge bg-primary">Bàn {{ message.tableId }}</span>
+                  <span class="badge bg-primary">{{ message.tableId }}</span>
                   <span class="time">{{ formatTime(message.timestamp) }}</span>
                 </div>
                 <div class="message-content">
@@ -49,6 +49,7 @@
       </div>
     </div>
 
+    <!-- Modal hiển thị thông tin bàn -->
     <div v-if="showTableModal" class="modal-backdrop">
       <div class="modal-content">
         <h5>Thông tin bàn</h5>
@@ -76,7 +77,7 @@ import { connectWebSocket, subscribe, disconnectWebSocket } from '@/utils/websoc
 import axios from 'axios'
 
 export default {
-  name: 'ServiceStaffDashboard',
+  name: 'DashBoard',
   data() {
     return {
       messages: [],
@@ -108,7 +109,7 @@ export default {
     },
     async getTables() {
       try {
-        const response = await axios.get('http://localhost:8081/table')
+        const response = await axios.get('http://localhost:8081/table/getAll')
         this.tables = response.data.result.map((table) => ({
           id: table.id,
           name: table.name,
@@ -129,7 +130,7 @@ export default {
         formData.append('description', this.selectedTable.description)
         formData.append('capacity', this.selectedTable.capacity)
         formData.append('url', this.selectedTable.url)
-        console.log(formData.get('status'))
+
         await axios.put(`http://localhost:8081/table`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
@@ -145,6 +146,7 @@ export default {
   async created() {
     try {
       await this.getTables()
+
       connectWebSocket(
         () => {
           console.log('WebSocket connected successfully')
@@ -169,8 +171,8 @@ export default {
 </script>
 
 <style scoped>
-.content-wrapper {
-  padding: 20px;
+.dashboard {
+  width: 100%;
 }
 
 .card {
@@ -379,4 +381,4 @@ export default {
     opacity: 1;
   }
 }
-</style>
+</style> 

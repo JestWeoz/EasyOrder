@@ -4,23 +4,43 @@ import AdminView from '../views/AdminView.vue'
 import MenuManagement from '../components/admin/MenuManagement.vue'
 import TableManagement from '../components/admin/TableManagement.vue'
 import StaffManagement from '../components/admin/StaffManagement.vue'
-import ServiceStaffView from '../views/SeviceStaff.vue'
+import ServiceStaffView from '../views/ServiceStaff.vue'
 import LoginView from '../views/LoginView.vue'
 import RegisterView from '../views/RegisterView.vue'
 import { jwtDecode } from 'jwt-decode'
+import Dashboard from '../components/serviceStaff/Dashboard.vue'
+import Orders from '@/components/serviceStaff/Orders.vue'
+import KitchenManager from '@/components/serviceStaff/KitchenManager.vue'
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
     routes: [
         {
-            path: '/',
+            path: '/menu',
             name: 'Menu',
             component: MenuView
         },
         {
             path: '/service-staff',
             name: 'ServiceStaff',
-            component: ServiceStaffView
+            component: ServiceStaffView,
+            children: [
+                {
+                    path: 'dashboard',
+                    name: 'Dashboard',
+                    component: Dashboard
+                },
+                {
+                    path: 'orders',
+                    name: 'Orders',
+                    component: Orders
+                },
+                {
+                    path: 'kitchen-management',
+                    name: 'KitchenManager',
+                    component: KitchenManager
+                }
+            ]
         },
         {
             path: '/login',

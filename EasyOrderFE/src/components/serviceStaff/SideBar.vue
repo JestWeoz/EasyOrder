@@ -17,39 +17,23 @@
         <ul class="menu">
           <li class="sidebar-title">Menu</li>
 
-          <li class="sidebar-item" :class="{ active: activeComponent === 'MenuManagement' }">
-            <a class="sidebar-link" @click="changeComponent('MenuManagement')">
+          <li class="sidebar-item" :class="{ active: activeComponent === 'Dashboard' }">
+            <a class="sidebar-link" @click="changeComponent('Dashboard')">
               <i class="bi bi-grid-fill"></i>
               <span>Trang chủ</span>
             </a>
           </li>
-          <li class="sidebar-item" :class="{ active: activeComponent === 'TableManagement' }">
-            <a class="sidebar-link" @click="changeComponent('TableManagement')">
+          <li class="sidebar-item" :class="{ active: activeComponent === 'Orders' }">
+            <a class="sidebar-link" @click="changeComponent('Orders')">
               <i class="bi bi-grid-1x2-fill"></i>
               <span>Đơn hàng</span>
             </a>
           </li>
-
-          <li
-            class="sidebar-item has-sub"
-            :class="{
-              active: activeComponent === 'StaffManagement' || activeComponent === 'AddStaff',
-            }"
-          >
-            <a class="sidebar-link" @click="toggleSubmenu">
+          <li class="sidebar-item" :class="{ active: activeComponent === 'KitchenManager' }">
+            <a class="sidebar-link" @click="changeComponent('KitchenManager')">
               <i class="bi bi-grid-1x2-fill"></i>
-              <span>Quản lý nhân viên</span>
+              <span>Bếp</span>
             </a>
-            <ul
-              class="submenu"
-              :class="{
-                active: activeComponent === 'StaffManagement' || activeComponent === 'AddStaff',
-              }"
-            >
-              <li class="submenu-item" :class="{ active: activeComponent === 'StaffManagement' }">
-                <a @click="changeComponent('StaffManagement')">Danh sách nhân viên</a>
-              </li>
-            </ul>
           </li>
         </ul>
       </div>
@@ -59,8 +43,6 @@
 </template>
 
 <script>
-import { useRouter } from 'vue-router'
-
 export default {
   name: 'ServiceStaffSideBar',
   props: {
@@ -68,10 +50,6 @@ export default {
       type: String,
       default: 'TableManagement',
     },
-  },
-  setup() {
-    const router = useRouter()
-    return { router }
   },
   methods: {
     toggleSubmenu(event) {
@@ -89,6 +67,18 @@ export default {
 
       // Chuyển router dựa trên component được chọn
       switch (componentName) {
+        case 'Dashboard':
+          // Chuyển đến trang chủ/dashboard
+          this.$router.push('/service-staff/dashboard')
+          break
+        case 'Orders':
+          // Chuyển đến trang quản lý đơn hàng
+          this.$router.push('/service-staff/orders')
+          break
+        case 'KitchenManager':
+          // Chuyển đến trang quản lý bếp
+          this.$router.push('/service-staff/kitchen-management')
+          break
       }
     },
   },
