@@ -32,19 +32,19 @@
             >
               <div class="user-menu d-flex">
                 <div class="user-name text-end me-3">
-                  <h6 class="mb-0 text-gray-600">Quoc Tuan</h6>
-                  <p class="mb-0 text-sm text-gray-600">Administrator</p>
+                  <h6 class="mb-0 text-gray-600">{{ userInfo.name || 'Người dùng' }}</h6>
+                  <p class="mb-0 text-sm text-gray-600">{{ userInfo.role || 'Nhân viên' }}</p>
                 </div>
                 <div class="user-img d-flex align-items-center">
                   <div class="avatar avatar-md">
-                    <img src="/src/assets/images/faces/1.jpg" />
+                    <img :src="userInfo.avatar || '/src/assets/images/faces/1.jpg'" />
                   </div>
                 </div>
               </div>
             </a>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
               <li>
-                <h6 class="dropdown-header">Hello, Quoc Tuan!</h6>
+                <h6 class="dropdown-header">Hello, {{ userInfo.name || 'Người dùng' }}!</h6>
               </li>
               <li>
                 <a class="dropdown-item"><i class="icon-mid bi bi-person me-2"></i> My Profile</a>
@@ -71,24 +71,33 @@
   </header>
 </template>
   
-  <script>
+<script>
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 
 export default {
   name: 'StaffServiceHeader',
+  props: {
+    userInfo: {
+      type: Object,
+      default: () => ({
+        name: '',
+        role: '',
+        avatar: '',
+      }),
+    },
+  },
   methods: {
     handleMailClick() {
       console.log('Mail clicked')
     },
     logout() {
-      localStorage.removeItem('token')
-      this.$router.push('/login')
+      this.$emit('logout')
     },
   },
 }
 </script>
   
-  <style scoped>
+<style scoped>
 a {
   text-decoration: none;
   cursor: pointer;

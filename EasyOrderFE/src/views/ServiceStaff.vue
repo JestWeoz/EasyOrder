@@ -6,7 +6,7 @@
       @change-component="setCurrentComponent"
     />
     <div id="main" class="layout-navbar">
-      <StaffServiceHeader @toggle-sidebar="toggleSidebar" @logout="logout" />
+      <StaffServiceHeader @toggle-sidebar="toggleSidebar" @logout="logout" :userInfo="userInfo" />
       <router-view />
     </div>
   </div>
@@ -15,6 +15,8 @@
 <script>
 import ServiceStaffSideBar from '@/components/serviceStaff/SideBar.vue'
 import StaffServiceHeader from '@/components/serviceStaff/Header.vue'
+import axios from 'axios'
+import { jwtDecode } from 'jwt-decode'
 
 export default {
   name: 'ServiceStaffView',
@@ -25,11 +27,19 @@ export default {
   data() {
     return {
       currentRouteName: '',
+      userInfo: {
+        name: '',
+        role: '',
+        avatar: '',
+      },
     }
   },
   created() {
     // Cập nhật component hiện tại dựa trên route
     this.updateCurrentComponent()
+
+    // Lấy thông tin người dùng từ token
+    this.getUserInfo()
   },
   watch: {
     // Theo dõi route thay đổi để cập nhật component đang active
@@ -51,7 +61,9 @@ export default {
     },
     updateCurrentComponent() {
       const routePath = this.$route.path
-      if (routePath.includes('dashboard')) {
+      if (routePath === '/service-staff') {
+        this.currentRouteName = 'Dashboard'
+      } else if (routePath.includes('dashboard')) {
         this.currentRouteName = 'Dashboard'
       } else if (routePath.includes('orders')) {
         this.currentRouteName = 'Orders'
@@ -66,6 +78,54 @@ export default {
       // Xử lý đăng xuất
       localStorage.removeItem('token')
       this.$router.push('/login')
+    },
+    getUserInfo() {
+      const token = localStorage.getItem('token')
+      if (!token) {
+        // Nếu không có token, chuyển về trang đăng nhập
+        this.$router.push('/login')
+        return
+      }
+
+      try {
+        // Giải mã token để lấy thông tin cơ bản
+        const decodedToken = jwtDecode(token)
+        console.log('Thông tin từ token:', decodedToken)
+
+        // Gọi API để lấy thông tin chi tiết của người dùng
+        axios
+          .get('http://localhost:8081/user/info', {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          })
+          .then((response) => {
+            console.log('Thông tin người dùng:', response.data)
+            // Cập nhật thông tin người dùng
+            if (response.data && response.data.result) {
+              const userData = response.data.result
+              this.userInfo = {
+                name: userData.fullName || userData.username || decodedToken.sub,
+                role:
+                  userData.role ||
+                  (decodedToken.scope ? decodedToken.scope.join(', ') : 'Nhân viên'),
+                avatar: userData.avatar || '/src/assets/images/faces/1.jpg',
+              }
+            }
+          })
+          .catch((error) => {
+            console.error('Lỗi khi lấy thông tin người dùng:', error)
+            // Sử dụng thông tin cơ bản từ token
+            this.userInfo = {
+              name: decodedToken.sub || 'Người dùng',
+              role: decodedToken.scope ? decodedToken.scope.join(', ') : 'Nhân viên',
+              avatar: '/src/assets/images/faces/1.jpg',
+            }
+          })
+      } catch (error) {
+        console.error('Lỗi khi giải mã token:', error)
+        this.$router.push('/login')
+      }
     },
   },
 }

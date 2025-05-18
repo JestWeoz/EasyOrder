@@ -4,7 +4,9 @@
       <div class="col-lg-5 col-12">
         <div id="auth-left">
           <div class="auth-logo">
-            <a href="/"><img src="@/assets/images/logo/logo.png" alt="Logo" class="logo-img" /></a>
+            <a href="/menu"
+              ><img src="@/assets/images/logo/logo.png" alt="Logo" class="logo-img"
+            /></a>
           </div>
           <h1 class="auth-title">Đăng nhập.</h1>
           <p class="auth-subtitle mb-5">Vui lòng đăng nhập để tiếp tục</p>
@@ -49,15 +51,6 @@
               Đăng nhập
             </button>
           </form>
-          <div class="text-center mt-5 text-lg fs-4">
-            <p class="text-gray-600">
-              Bạn chưa có tài khoản?
-              <router-link to="/register" class="font-bold">Đăng ký</router-link>
-            </p>
-            <p>
-              <router-link to="/forgot-password" class="font-bold">Quên mật khẩu?</router-link>
-            </p>
-          </div>
         </div>
       </div>
       <div class="col-lg-7 d-none d-lg-block">
@@ -94,16 +87,14 @@ export default {
           if (decodedToken.scope.includes('ADMIN')) {
             this.$router.push('/admin')
           } else if (decodedToken.scope.includes('STAFF')) {
-            this.$router.push('/service-staff')
-          } else if (decodedToken.scope.includes('CUSTOMER')) {
-            this.$router.push('/')
+            this.$router.push('/service-staff/dashboard')
           }
           console.log('Login successful:', response.data)
         })
         .catch((error) => {
           console.error('Login failed:', error)
           // Hiển thị thông báo lỗi
-          this.$toast.error('Invalid username or password')
+          this.$toast.error('Tên đăng nhập hoặc mật khẩu không chính xác')
         })
     },
   },

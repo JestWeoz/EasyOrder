@@ -7,7 +7,6 @@
           :cart="cart"
           :tableId="tableId"
           @call-staff="showStaffModal(tableId)"
-          @request-checkout="requestCheckout"
           @add-to-cart="addItem"
           @get-order="getOrder"
           v-model:isSidebarOpen="isSidebarOpen"

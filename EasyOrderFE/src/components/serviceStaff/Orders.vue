@@ -31,7 +31,6 @@
             <th>Bàn</th>
             <th>Thời gian</th>
             <th>Tổng tiền</th>
-            <th>Phương thức thanh toán</th>
             <th>Trạng thái</th>
             <th>Hành động</th>
           </tr>
@@ -43,10 +42,10 @@
             :class="{ highlight: order.status === 'PENDING' }"
           >
             <td>{{ order.id }}</td>
-            <td>{{ order.tableNumber }}</td>
-            <td>{{ formatDateTime(order.orderTime) }}</td>
+            <td>{{ order.table ? order.table.name : 'Không có thông tin' }}</td>
+            <td>{{ formatDateTime(order.created_at) }}</td>
             <td>{{ formatCurrency(order.totalAmount) }}</td>
-            <td>{{ getPaymentMethodLabel(order.paymentMethod) }}</td>
+
             <td>
               <span class="status-badge" :class="order.status.toLowerCase()">
                 {{ getStatusLabel(order.status) }}
@@ -65,7 +64,14 @@
                 <option value="COMPLETED">Hoàn thành</option>
                 <option value="CANCELLED">Đã hủy</option>
               </select>
-              <button @click="viewOrderDetails(order)" class="btn btn-view">Chi tiết</button>
+
+              <button
+                @click="showPaymentModal(order)"
+                class="btn btn-payment"
+                v-if="order.status !== 'COMPLETED' && order.status !== 'CANCELLED'"
+              >
+                Thanh toán
+              </button>
             </td>
           </tr>
           <tr v-if="filteredOrders.length === 0">
@@ -75,76 +81,30 @@
       </table>
     </div>
 
-    <!-- Modal chi tiết đơn hàng -->
-    <div v-if="selectedOrder" class="order-modal">
-      <div class="order-modal-content">
-        <div class="order-modal-header">
-          <h2>Chi tiết đơn hàng #{{ selectedOrder.id }}</h2>
-          <button @click="selectedOrder = null" class="close-btn">&times;</button>
-        </div>
-        <div class="order-modal-body">
-          <div class="order-info">
-            <p><strong>Bàn:</strong> {{ selectedOrder.tableNumber }}</p>
-            <p><strong>Thời gian:</strong> {{ formatDateTime(selectedOrder.orderTime) }}</p>
-            <p><strong>Trạng thái:</strong> {{ getStatusLabel(selectedOrder.status) }}</p>
-            <p>
-              <strong>Phương thức thanh toán:</strong>
-              {{ getPaymentMethodLabel(selectedOrder.paymentMethod) }}
-            </p>
-          </div>
-
-          <h3>Các món đã gọi</h3>
-          <table class="order-items-table">
-            <thead>
-              <tr>
-                <th>Món</th>
-                <th>Số lượng</th>
-                <th>Đơn giá</th>
-                <th>Thành tiền</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(item, index) in selectedOrder.items" :key="index">
-                <td>{{ item.name }}</td>
-                <td>{{ item.quantity }}</td>
-                <td>{{ formatCurrency(item.price) }}</td>
-                <td>{{ formatCurrency(item.price * item.quantity) }}</td>
-              </tr>
-            </tbody>
-            <tfoot>
-              <tr>
-                <td colspan="3" class="total-label">Tổng cộng:</td>
-                <td class="total-amount">{{ formatCurrency(selectedOrder.totalAmount) }}</td>
-              </tr>
-            </tfoot>
-          </table>
-
-          <div class="order-actions">
-            <select v-model="selectedOrder.status" class="status-select">
-              <option value="PENDING">Đang chờ</option>
-              <option value="CONFIRMED">Đã xác nhận</option>
-              <option value="PREPARING">Đang chuẩn bị</option>
-              <option value="READY">Sẵn sàng phục vụ</option>
-              <option value="COMPLETED">Hoàn thành</option>
-              <option value="CANCELLED">Đã hủy</option>
-            </select>
-            <button @click="updateOrderStatus(selectedOrder)" class="btn btn-primary">
-              Cập nhật trạng thái
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- Sử dụng component OrderPaymentModal -->
+    <OrderPaymentModal
+      v-if="paymentOrder"
+      :order="paymentOrder"
+      @close="paymentOrder = null"
+      @confirm-payment="processPayment"
+    />
   </div>
 </template>
 
 <script>
+import axios from 'axios'
+import OrderPaymentModal from './OrderPaymentModal.vue'
+
 export default {
   name: 'Orders',
+  components: {
+    OrderPaymentModal,
+  },
   data() {
     return {
       orders: [],
       selectedOrder: null,
+      paymentOrder: null,
       statusFilter: '',
       searchQuery: '',
       loading: false,
@@ -153,6 +113,10 @@ export default {
   },
   computed: {
     filteredOrders() {
+      if (!this.orders || !Array.isArray(this.orders)) {
+        return []
+      }
+
       return this.orders.filter((order) => {
         // Lọc theo trạng thái
         const statusMatch = !this.statusFilter || order.status === this.statusFilter
@@ -161,8 +125,10 @@ export default {
         const searchLower = this.searchQuery.toLowerCase()
         const searchMatch =
           !this.searchQuery ||
-          order.id.toString().includes(searchLower) ||
-          order.tableNumber.toString().includes(searchLower)
+          (order.id && order.id.toString().includes(searchLower)) ||
+          (order.table &&
+            order.table.name &&
+            order.table.name.toString().toLowerCase().includes(searchLower))
 
         return statusMatch && searchMatch
       })
@@ -171,22 +137,31 @@ export default {
   methods: {
     // Hàm định dạng thời gian
     formatDateTime(dateTimeString) {
-      const date = new Date(dateTimeString)
-      return new Intl.DateTimeFormat('vi-VN', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      }).format(date)
+      if (!dateTimeString) return 'N/A'
+      try {
+        const date = new Date(dateTimeString)
+        // Lấy giờ, phút, giây theo định dạng hh:mm:ss
+        const hours = date.getHours().toString().padStart(2, '0')
+        const minutes = date.getMinutes().toString().padStart(2, '0')
+        const seconds = date.getSeconds().toString().padStart(2, '0')
+        // Định dạng: DD/MM/YYYY HH:MM:SS
+        return `${hours}:${minutes}:${seconds}`
+      } catch (e) {
+        return 'N/A'
+      }
     },
 
     // Hàm định dạng tiền tệ
     formatCurrency(amount) {
-      return new Intl.NumberFormat('vi-VN', {
-        style: 'currency',
-        currency: 'VND',
-      }).format(amount)
+      if (amount === undefined || amount === null) return '0 ₫'
+      try {
+        return new Intl.NumberFormat('vi-VN', {
+          style: 'currency',
+          currency: 'VND',
+        }).format(amount)
+      } catch (e) {
+        return '0 ₫'
+      }
     },
 
     // Hàm lấy tên trạng thái
@@ -213,9 +188,50 @@ export default {
       return methodMap[method] || method
     },
 
-    // Hàm xem chi tiết đơn hàng
-    viewOrderDetails(order) {
-      this.selectedOrder = { ...order }
+    // Hàm hiển thị modal thanh toán
+    showPaymentModal(order) {
+      // Kiểm tra xem order có đầy đủ thông tin không
+      if (!order) return
+
+      // Tạo bản sao của đơn hàng để tránh thay đổi trực tiếp
+      const orderCopy = { ...order }
+
+      // Đảm bảo các trường cần thiết đều tồn tại
+      if (!orderCopy.items) orderCopy.items = []
+      if (!orderCopy.totalAmount) orderCopy.totalAmount = 0
+
+      this.paymentOrder = orderCopy
+    },
+
+    // Hàm xử lý thanh toán
+    async processPayment(paymentData) {
+      try {
+        this.loading = true
+        // Gọi API để cập nhật trạng thái và phương thức thanh toán
+        await axios.post(`http://localhost:8081/order/payment/${paymentData.orderId}`, {
+          paymentMethod: paymentData.paymentMethod,
+        })
+
+        // Cập nhật trạng thái đơn hàng thành COMPLETED
+        await this.updateOrderStatus({
+          id: paymentData.orderId,
+          status: 'COMPLETED',
+        })
+
+        // Đóng modal thanh toán
+        this.paymentOrder = null
+
+        // Hiển thị thông báo thành công
+        console.log(`Đã thanh toán đơn hàng #${paymentData.orderId}`)
+
+        // Reload danh sách đơn hàng
+        this.fetchOrders()
+      } catch (error) {
+        this.error = 'Lỗi khi xử lý thanh toán'
+        console.error(error)
+      } finally {
+        this.loading = false
+      }
     },
 
     // Hàm cập nhật trạng thái đơn hàng
@@ -223,7 +239,9 @@ export default {
       try {
         this.loading = true
         // Gọi API để cập nhật trạng thái
-        // Ví dụ: await api.updateOrderStatus(order.id, order.status);
+        await axios.put(`http://localhost:8081/order/updateStatus/${order.id}`, {
+          status: order.status,
+        })
 
         // Cập nhật lại danh sách đơn hàng
         const index = this.orders.findIndex((o) => o.id === order.id)
@@ -237,7 +255,7 @@ export default {
         }
 
         // Hiển thị thông báo thành công
-        alert(
+        console.log(
           `Đã cập nhật trạng thái đơn hàng #${order.id} thành ${this.getStatusLabel(order.status)}`
         )
       } catch (error) {
@@ -253,48 +271,10 @@ export default {
       try {
         this.loading = true
         // Gọi API để lấy danh sách đơn hàng
-        // Trong ví dụ này, tạo dữ liệu mẫu
-        this.orders = [
-          {
-            id: 1001,
-            tableNumber: 5,
-            orderTime: new Date().toISOString(),
-            totalAmount: 250000,
-            paymentMethod: 'CASH',
-            status: 'PENDING',
-            items: [
-              { name: 'Cà phê đen', quantity: 2, price: 30000 },
-              { name: 'Bánh mì thịt', quantity: 3, price: 35000 },
-              { name: 'Nước cam', quantity: 1, price: 50000 },
-            ],
-          },
-          {
-            id: 1002,
-            tableNumber: 8,
-            orderTime: new Date(Date.now() - 30 * 60000).toISOString(),
-            totalAmount: 475000,
-            paymentMethod: 'CARD',
-            status: 'CONFIRMED',
-            items: [
-              { name: 'Mì xào hải sản', quantity: 2, price: 120000 },
-              { name: 'Salad trộn', quantity: 1, price: 75000 },
-              { name: 'Nước ngọt', quantity: 4, price: 40000 },
-            ],
-          },
-          {
-            id: 1003,
-            tableNumber: 12,
-            orderTime: new Date(Date.now() - 90 * 60000).toISOString(),
-            totalAmount: 850000,
-            paymentMethod: 'TRANSFER',
-            status: 'PREPARING',
-            items: [
-              { name: 'Bò bít tết', quantity: 2, price: 250000 },
-              { name: 'Súp cua', quantity: 2, price: 100000 },
-              { name: 'Rượu vang', quantity: 1, price: 250000 },
-            ],
-          },
-        ]
+        const response = await axios.get('http://localhost:8081/order/getAll')
+        console.log(response.data)
+        this.orders = response.data.result || []
+        console.log(this.orders[0].created_at)
       } catch (error) {
         this.error = 'Lỗi khi tải danh sách đơn hàng'
         console.error(error)
@@ -422,10 +402,37 @@ h1 {
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  color: white;
+}
+
+.btn:active {
+  transform: translateY(0);
 }
 
 .btn-view {
   background-color: #2196f3;
+  color: white;
+  margin-right: 5px;
+}
+
+.btn-view:hover {
+  background-color: #0d8aee;
+  color: white;
+}
+
+.btn-payment {
+  background-color: #ff9800;
+  color: white;
+}
+
+.btn-payment:hover {
+  background-color: #f57c00;
   color: white;
 }
 
@@ -439,98 +446,5 @@ h1 {
   text-align: center;
   padding: 40px;
   color: #888;
-}
-
-/* Modal styles */
-.order-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.order-modal-content {
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  width: 80%;
-  max-width: 800px;
-  max-height: 90vh;
-  overflow-y: auto;
-}
-
-.order-modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 20px;
-  border-bottom: 1px solid #eee;
-}
-
-.order-modal-header h2 {
-  margin: 0;
-  font-size: 20px;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: #666;
-}
-
-.order-modal-body {
-  padding: 20px;
-}
-
-.order-info {
-  background-color: #f9f9f9;
-  padding: 15px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-}
-
-.order-info p {
-  margin: 8px 0;
-}
-
-.order-items-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 20px;
-}
-
-.order-items-table th,
-.order-items-table td {
-  border: 1px solid #ddd;
-  padding: 10px;
-  text-align: left;
-}
-
-.order-items-table th {
-  background-color: #f5f5f5;
-}
-
-.total-label {
-  text-align: right;
-  font-weight: bold;
-}
-
-.total-amount {
-  font-weight: bold;
-}
-
-.order-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 20px;
 }
 </style>

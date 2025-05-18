@@ -26,8 +26,13 @@ const router = createRouter({
             component: ServiceStaffView,
             children: [
                 {
-                    path: 'dashboard',
+                    path: '',
                     name: 'Dashboard',
+                    component: Dashboard
+                },
+                {
+                    path: 'dashboard',
+                    name: 'ServiceStaffDashboard',
                     component: Dashboard
                 },
                 {

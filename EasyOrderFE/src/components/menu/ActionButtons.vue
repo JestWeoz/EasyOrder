@@ -7,13 +7,14 @@
       </button>
     </div>
     <div class="col-6 ps-1">
-      <button class="btn btn-outline-secondary w-100 fw-bold" @click="requestCheckout">
+      <button class="btn btn-outline-secondary w-100 fw-bold" @click="showCheckoutModal">
         <i class="bi bi-cash-coin me-1"></i>
         Gọi thanh toán
       </button>
     </div>
 
     <StaffCallModal ref="staffModalRef" />
+    <CheckoutModal ref="checkoutModalRef" />
   </div>
 </template>
 
@@ -21,11 +22,13 @@
 import { ref } from 'vue'
 import { sendMessage } from '@/utils/websocket'
 import StaffCallModal from './StaffCallModal.vue'
+import CheckoutModal from './CheckoutModal.vue'
 
 export default {
   name: 'ActionButtons',
   components: {
     StaffCallModal,
+    CheckoutModal,
   },
   props: {
     tableId: {
@@ -39,6 +42,7 @@ export default {
   },
   setup(props) {
     const staffModalRef = ref(null)
+    const checkoutModalRef = ref(null)
 
     const showStaffModal = () => {
       if (staffModalRef.value) {
@@ -48,24 +52,19 @@ export default {
       }
     }
 
-    const requestCheckout = () => {
-      const message = {
-        tableId: props.tableId,
-        tableName: props.tableInfo.name,
-        type: 'CHECKOUT_REQUEST',
-      }
-
-      if (sendMessage('/app/checkout', message)) {
-        alert('Đã gửi yêu cầu thanh toán')
-      } else {
-        alert('Không thể gửi yêu cầu thanh toán. Vui lòng thử lại sau.')
+    const showCheckoutModal = () => {
+      if (checkoutModalRef.value) {
+        checkoutModalRef.value.tableId = props.tableId
+        checkoutModalRef.value.tableInfo = props.tableInfo
+        checkoutModalRef.value.showModal()
       }
     }
 
     return {
       staffModalRef,
+      checkoutModalRef,
       showStaffModal,
-      requestCheckout,
+      showCheckoutModal,
     }
   },
 }
