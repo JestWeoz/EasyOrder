@@ -237,7 +237,7 @@ export default {
         this.loading = true
         const response = await axios.get('http://localhost:8081/order/getAll')
         const allOrders = response.data.result || []
-        console.log(allOrders)
+
         // Phân loại đơn hàng
         this.pendingOrders = allOrders.filter((order) => order.status === 'CONFIRMED')
         this.processingOrders = allOrders.filter((order) => order.status === 'PREPARING')

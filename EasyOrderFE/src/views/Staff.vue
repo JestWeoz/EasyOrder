@@ -7,7 +7,19 @@
     />
     <div id="main" class="layout-navbar">
       <StaffServiceHeader @toggle-sidebar="toggleSidebar" @logout="logout" :userInfo="userInfo" />
-      <router-view />
+      <router-view v-slot="{ Component }">
+        <component
+          :is="Component"
+          :messages="messages"
+          :tables="tables"
+          :showTableModal="showTableModal"
+          :selectedTable="selectedTable || {}"
+          @table-click="handleTableClick"
+          @update-table-status="updateTableStatus"
+          @clear-messages="clearMessages"
+          @update:showTableModal="showTableModal = $event"
+        />
+      </router-view>
     </div>
   </div>
 </template>
@@ -33,16 +45,44 @@ export default {
         role: '',
         avatar: '',
       },
+      messages: [],
+      subscription: null,
+      tables: [],
+      showTableModal: false,
+      selectedTable: null,
     }
   },
-  created() {
+  async created() {
     // Cập nhật component hiện tại dựa trên route
     this.updateCurrentComponent()
 
     // Lấy thông tin người dùng từ token
     this.getUserInfo()
+
+    try {
+      await this.getTables()
+      this.loadMessagesFromLocalStorage()
+
+      connectWebSocket(
+        () => {
+          console.log('WebSocket connected successfully')
+          this.subscription = subscribe('/topic/staff', this.handleNewMessage)
+          console.log('Subscription:', this.subscription)
+        },
+        (error) => {
+          console.error('WebSocket connection error:', error)
+        }
+      )
+    } catch (error) {
+      console.error('Lỗi khi khởi tạo:', error)
+    }
   },
-  beforeUnmount() {},
+  beforeUnmount() {
+    if (this.subscription) {
+      this.subscription.unsubscribe()
+    }
+    disconnectWebSocket()
+  },
   watch: {
     // Theo dõi route thay đổi để cập nhật component đang active
     $route() {
@@ -92,8 +132,6 @@ export default {
       try {
         // Giải mã token để lấy thông tin cơ bản
         const decodedToken = jwtDecode(token)
-        console.log('Thông tin từ token:', decodedToken)
-
         // Gọi API để lấy thông tin chi tiết của người dùng
         axios
           .get('http://localhost:8081/user/getInfo', {
@@ -105,9 +143,7 @@ export default {
             },
           })
           .then((response) => {
-            console.log('Thông tin người dùng:', response.data)
             // Cập nhật thông tin người dùng
-
             const userData = response.data.result
             this.userInfo = {
               name:
@@ -139,6 +175,78 @@ export default {
         console.error('Lỗi khi giải mã token:', error)
         this.$router.push('/login')
       }
+    },
+    formatTime(timestamp) {
+      return new Date(timestamp).toLocaleString('vi-VN')
+    },
+    handleNewMessage(response) {
+      const message = response.result
+      console.log('Nhận tin nhắn mới:', message)
+      const newMessage = {
+        id: Date.now(),
+        tableId: message.tableId,
+        content: message.message,
+        type: message.type,
+        timestamp: new Date().toISOString(),
+      }
+      this.messages.unshift(newMessage)
+      this.saveMessagesToLocalStorage()
+    },
+    getStatusText(status) {
+      return status === 'empty' ? 'Trống' : 'Đang sử dụng'
+    },
+    handleTableClick(table) {
+      this.selectedTable = { ...table }
+      this.showTableModal = true
+    },
+    async getTables() {
+      try {
+        const response = await axios.get('http://localhost:8081/table/getAll')
+        this.tables = response.data.result.map((table) => ({
+          id: table.id,
+          name: table.name,
+          description: table.description,
+          capacity: table.capacity,
+          status: table.status === 1 ? 'empty' : 'occupied',
+        }))
+      } catch (error) {
+        console.error('Lỗi khi lấy danh sách bàn:', error)
+      }
+    },
+    async updateTableStatus(tableInfo) {
+      try {
+        const formData = new FormData()
+        formData.append('id', tableInfo.id)
+        formData.append('status', tableInfo.status === 'empty' ? 1 : 0)
+        formData.append('name', tableInfo.name)
+        formData.append('description', tableInfo.description)
+        formData.append('capacity', tableInfo.capacity)
+        formData.append('url', tableInfo.url)
+
+        await axios.put(`http://localhost:8081/table`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        })
+        await this.getTables()
+        this.showTableModal = false
+      } catch (error) {
+        alert('Cập nhật trạng thái bàn thất bại!')
+      }
+    },
+    saveMessagesToLocalStorage() {
+      localStorage.setItem('staff_messages', JSON.stringify(this.messages))
+    },
+    loadMessagesFromLocalStorage() {
+      const savedMessages = localStorage.getItem('staff_messages')
+      if (savedMessages) {
+        this.messages = JSON.parse(savedMessages)
+      }
+    },
+    clearMessages() {
+      this.messages = []
+      this.saveMessagesToLocalStorage()
     },
   },
 }

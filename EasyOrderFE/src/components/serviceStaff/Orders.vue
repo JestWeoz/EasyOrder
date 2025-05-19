@@ -289,9 +289,8 @@ export default {
         this.loading = true
         // Gọi API để lấy danh sách đơn hàng
         const response = await axios.get('http://localhost:8081/order/getAll')
-        console.log(response.data)
+
         this.orders = response.data.result || []
-        console.log(this.orders[0].created_at)
       } catch (error) {
         this.error = 'Lỗi khi tải danh sách đơn hàng'
         console.error(error)

@@ -63,19 +63,19 @@
     <div v-if="showTableModal" class="modal-backdrop">
       <div class="modal-content">
         <h5>Thông tin bàn</h5>
-        <p><strong>Tên bàn:</strong> Bàn {{ selectedTable.number }}</p>
-        <p><strong>Mô tả:</strong> {{ selectedTable.description }}</p>
-        <p><strong>Sức chứa:</strong> {{ selectedTable.capacity }}</p>
+        <p><strong>Tên bàn:</strong> Bàn {{ tableInfo.number }}</p>
+        <p><strong>Mô tả:</strong> {{ tableInfo.description }}</p>
+        <p><strong>Sức chứa:</strong> {{ tableInfo.capacity }}</p>
         <p>
           <strong>Trạng thái:</strong>
-          <select v-model="selectedTable.status">
+          <select v-model="tableInfo.status">
             <option value="empty">Trống</option>
             <option value="occupied">Đang sử dụng</option>
           </select>
         </p>
         <div class="modal-actions">
-          <button @click="updateTableStatus">Lưu</button>
-          <button @click="showTableModal = false">Đóng</button>
+          <button @click="handleSave">Lưu</button>
+          <button @click="handleClose">Đóng</button>
         </div>
       </div>
     </div>
@@ -83,119 +83,68 @@
 </template>
 
 <script>
-import { connectWebSocket, subscribe, disconnectWebSocket } from '@/utils/websocket'
-import axios from 'axios'
-
 export default {
   name: 'DashBoard',
-  inject: ['messages', 'clearMessages'],
-  data() {
-    return {
-      messages: [],
-      subscription: null,
-      tables: [],
-      showTableModal: false,
-      selectedTable: null,
-    }
+  props: {
+    messages: {
+      type: Array,
+      required: true,
+      default: () => [],
+    },
+    tables: {
+      type: Array,
+      required: true,
+      default: () => [],
+    },
+    showTableModal: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
+    selectedTable: {
+      type: Object,
+      required: true,
+      default: () => ({
+        id: null,
+        name: '',
+        description: '',
+        capacity: 0,
+        status: 'empty',
+        number: '',
+      }),
+    },
+  },
+  computed: {
+    tableInfo() {
+      return {
+        ...this.selectedTable,
+        number: this.selectedTable.name || '',
+        description: this.selectedTable.description || '',
+        capacity: this.selectedTable.capacity || 0,
+        status: this.selectedTable.status || 'empty',
+      }
+    },
   },
   methods: {
     formatTime(timestamp) {
       return new Date(timestamp).toLocaleString('vi-VN')
     },
-    handleNewMessage(response) {
-      const message = response.result
-      console.log(message)
-      const newMessage = {
-        id: Date.now(),
-        tableId: message.tableId,
-        content: message.message,
-        type: message.type,
-        timestamp: new Date().toISOString(),
-      }
-      this.messages.unshift(newMessage)
-      this.saveMessagesToLocalStorage()
-    },
     getStatusText(status) {
       return status === 'empty' ? 'Trống' : 'Đang sử dụng'
     },
     handleTableClick(table) {
-      this.selectedTable = { ...table }
-      this.showTableModal = true
+      this.$emit('table-click', table)
     },
-    async getTables() {
-      try {
-        const response = await axios.get('http://localhost:8081/table/getAll')
-        this.tables = response.data.result.map((table) => ({
-          id: table.id,
-          name: table.name,
-          description: table.description,
-          capacity: table.capacity,
-          status: table.status === 1 ? 'empty' : 'occupied',
-        }))
-      } catch (error) {
-        console.error('Lỗi khi lấy danh sách bàn:', error)
-      }
+    handleSave() {
+      this.$emit('update-table-status', this.tableInfo)
+      this.handleClose()
     },
-    async updateTableStatus() {
-      try {
-        const formData = new FormData()
-        formData.append('id', this.selectedTable.id)
-        formData.append('status', this.selectedTable.status === 'empty' ? 1 : 0)
-        formData.append('name', this.selectedTable.name)
-        formData.append('description', this.selectedTable.description)
-        formData.append('capacity', this.selectedTable.capacity)
-        formData.append('url', this.selectedTable.url)
-
-        await axios.put(`http://localhost:8081/table`, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        })
-        await this.getTables()
-        this.showTableModal = false
-      } catch (error) {
-        alert('Cập nhật trạng thái bàn thất bại!')
-      }
-    },
-    saveMessagesToLocalStorage() {
-      localStorage.setItem('staff_messages', JSON.stringify(this.messages))
-    },
-    loadMessagesFromLocalStorage() {
-      const savedMessages = localStorage.getItem('staff_messages')
-      if (savedMessages) {
-        this.messages = JSON.parse(savedMessages)
-      }
+    handleClose() {
+      this.$emit('update:showTableModal', false)
     },
     clearMessages() {
-      this.messages = []
-      this.saveMessagesToLocalStorage()
+      this.$emit('clear-messages')
     },
-  },
-  async created() {
-    try {
-      await this.getTables()
-      this.loadMessagesFromLocalStorage()
-
-      connectWebSocket(
-        () => {
-          console.log('WebSocket connected successfully')
-          this.subscription = subscribe('/topic/staff', this.handleNewMessage)
-          console.log('Subscription:', this.subscription)
-        },
-        (error) => {
-          console.error('WebSocket connection error:', error)
-        }
-      )
-    } catch (error) {
-      console.error('Lỗi khi khởi tạo:', error)
-    }
-  },
-  beforeUnmount() {
-    if (this.subscription) {
-      this.subscription.unsubscribe()
-    }
-    disconnectWebSocket()
   },
 }
 </script>
