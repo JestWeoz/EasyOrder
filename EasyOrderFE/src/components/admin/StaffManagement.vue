@@ -152,6 +152,7 @@ export default {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
         })
+        console.log(res.data)
         if (res.data && res.data.result) {
           this.staffs = res.data.result
         }
@@ -181,8 +182,10 @@ export default {
         ...staff,
         password: '',
         roles: staff.roles ? [staff.roles[0].id] : [],
+        id: staff.id,
       }
       this.editModal.show()
+      console.log(this.editStaff)
     },
     async handleUpdateStaff() {
       try {

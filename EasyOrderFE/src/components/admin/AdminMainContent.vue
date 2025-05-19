@@ -8,6 +8,7 @@
 import MenuManagement from './MenuManagement.vue'
 import TableManagement from './TableManagement.vue'
 import StaffManagement from './StaffManagement.vue'
+import Revenue from './Revenue.vue'
 
 export default {
   name: 'AdminMainContent',
@@ -15,6 +16,7 @@ export default {
     MenuManagement,
     TableManagement,
     StaffManagement,
+    Revenue,
   },
   props: {
     currentComponent: {

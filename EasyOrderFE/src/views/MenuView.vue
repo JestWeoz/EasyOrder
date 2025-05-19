@@ -112,6 +112,10 @@ export default {
       }, [])
     })
 
+    const pageTitle = computed(() => {
+      return `${tableInfo.value.name || `Bàn ${tableId}`}`
+    })
+
     const getMenu = async () => {
       try {
         const response = await axios.get('http://localhost:8081/menu')
@@ -140,12 +144,17 @@ export default {
       await getTable()
       await getMenu()
       window.addEventListener('scroll', handleScroll)
+      document.title = pageTitle.value
     })
 
     watch(isOrderPageOpen, (newValue) => {
       if (newValue === true) {
         getOrder()
       }
+    })
+
+    watch(pageTitle, (newTitle) => {
+      document.title = newTitle
     })
 
     onUnmounted(() => {
@@ -284,6 +293,7 @@ export default {
       tableId,
       tableInfo,
       staffModalRef,
+      pageTitle,
     }
   },
 }

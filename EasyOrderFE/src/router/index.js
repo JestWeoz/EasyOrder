@@ -4,6 +4,7 @@ import AdminView from '../views/AdminView.vue'
 import MenuManagement from '../components/admin/MenuManagement.vue'
 import TableManagement from '../components/admin/TableManagement.vue'
 import StaffManagement from '../components/admin/StaffManagement.vue'
+import Revenue from '../components/admin/Revenue.vue'
 import StaffView from '../views/Staff.vue'
 import LoginView from '../views/LoginView.vue'
 import RegisterView from '../views/RegisterView.vue'
@@ -46,7 +47,7 @@ const router = createRouter({
                     name: 'KitchenManager',
                     component: KitchenManager
                 },
-               
+
             ]
         },
         {
@@ -84,6 +85,11 @@ const router = createRouter({
                     path: 'staff',
                     name: 'StaffManagement',
                     component: StaffManagement
+                },
+                {
+                    path: 'revenue',
+                    name: 'Revenue',
+                    component: Revenue
                 }
             ]
         }

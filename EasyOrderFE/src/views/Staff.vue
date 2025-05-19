@@ -6,7 +6,12 @@
       @change-component="setCurrentComponent"
     />
     <div id="main" class="layout-navbar">
-      <StaffServiceHeader @toggle-sidebar="toggleSidebar" @logout="logout" :userInfo="userInfo" />
+      <StaffServiceHeader
+        @toggle-sidebar="toggleSidebar"
+        @logout="logout"
+        :userInfo="userInfo"
+        :messages="messages"
+      />
       <router-view v-slot="{ Component }">
         <component
           :is="Component"
@@ -52,12 +57,20 @@ export default {
       selectedTable: null,
     }
   },
+  computed: {
+    pageTitle() {
+      return ` ${this.userInfo.name || 'Nhân viên'}`
+    },
+  },
   async created() {
     // Cập nhật component hiện tại dựa trên route
     this.updateCurrentComponent()
 
     // Lấy thông tin người dùng từ token
     this.getUserInfo()
+
+    // Cập nhật title
+    document.title = this.pageTitle
 
     try {
       await this.getTables()

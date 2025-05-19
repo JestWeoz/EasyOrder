@@ -73,19 +73,19 @@
                   class="order-card processing"
                 >
                   <div class="order-header">
-                    <h5>Bàn {{ order.tableNumber }}</h5>
+                    <h5>{{ order.table.name }}</h5>
                     <span class="badge bg-info">{{ formatOrderStatus(order.status) }}</span>
                   </div>
                   <div class="order-details">
                     <p><strong>Mã đơn:</strong> #{{ order.id }}</p>
-                    <p><strong>Thời gian:</strong> {{ formatTime(order.createdAt) }}</p>
+                    <p><strong>Thời gian:</strong> {{ formatTime(order.created_at) }}</p>
                     <p v-if="order.note"><strong>Ghi chú:</strong> {{ order.note }}</p>
                   </div>
                   <div class="order-items">
                     <h6>Món ăn:</h6>
                     <ul>
-                      <li v-for="item in order.items" :key="item.id">
-                        {{ item.quantity }}x {{ item.name }}
+                      <li v-for="item in order.orderItems" :key="item.id">
+                        {{ item.quantity }}x {{ item.product.name }}
                       </li>
                     </ul>
                   </div>

@@ -51,15 +51,7 @@
                 <li>
                   <h6 class="dropdown-header">Hello, {{ userInfo.name || 'Người dùng' }}!</h6>
                 </li>
-                <li>
-                  <a class="dropdown-item"><i class="icon-mid bi bi-person me-2"></i> My Profile</a>
-                </li>
-                <li>
-                  <a class="dropdown-item"><i class="icon-mid bi bi-gear me-2"></i> Settings</a>
-                </li>
-                <li>
-                  <a class="dropdown-item"><i class="icon-mid bi bi-wallet me-2"></i> Wallet</a>
-                </li>
+
                 <li>
                   <hr class="dropdown-divider" />
                 </li>
@@ -108,16 +100,19 @@ export default {
   watch: {
     messages: {
       handler(newMessages) {
-        if (newMessages.length > 0) {
+        if (newMessages && newMessages.length > 0) {
           const latestMessage = newMessages[0]
           this.toastMessage = `${latestMessage.tableId}: ${latestMessage.content}`
           this.showToast = true
+
+          // Tự động ẩn toast sau 3 giây
           setTimeout(() => {
             this.showToast = false
           }, 3000)
         }
       },
       deep: true,
+      immediate: true,
     },
   },
 

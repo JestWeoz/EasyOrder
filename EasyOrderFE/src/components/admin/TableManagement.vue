@@ -137,7 +137,7 @@
               :options="{ width: 300 }"
               ref="qrCode"
             />
-            <p class="mt-3">{{ tables.find((t) => t.id === selectedTable)?.url }}</p>
+            
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-success" @click="downloadQR">Tải về</button>
@@ -216,7 +216,11 @@ export default {
     },
     async addTable() {
       try {
-        await axios.post('http://localhost:8081/table', this.newTable)
+        await axios.post('http://localhost:8081/table', this.newTable, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        })
         this.fetchTables()
         this.addTableModal.hide()
       } catch (error) {
@@ -224,15 +228,23 @@ export default {
       }
     },
     async deleteTable(id) {
+      if (!confirm('Bạn có chắc chắn muốn xóa bàn này?')) {
+        return
+      }
       try {
         await axios.delete(`http://localhost:8081/table`, {
           params: {
             id: id,
           },
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
         })
+        alert('Xóa bàn thành công!')
         this.fetchTables()
       } catch (error) {
-        console.error('Error deleting table:', error)
+        console.error('Lỗi khi xóa bàn:', error)
+        alert('Có lỗi xảy ra khi xóa bàn. Vui lòng thử lại!')
       }
     },
   },

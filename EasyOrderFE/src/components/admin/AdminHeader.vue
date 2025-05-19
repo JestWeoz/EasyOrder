@@ -80,15 +80,7 @@
               <li>
                 <h6 class="dropdown-header">Hello, {{ userInfo.name }}!</h6>
               </li>
-              <li>
-                <a class="dropdown-item"><i class="icon-mid bi bi-person me-2"></i> My Profile</a>
-              </li>
-              <li>
-                <a class="dropdown-item"><i class="icon-mid bi bi-gear me-2"></i> Settings</a>
-              </li>
-              <li>
-                <a class="dropdown-item"><i class="icon-mid bi bi-wallet me-2"></i> Wallet</a>
-              </li>
+
               <li>
                 <hr class="dropdown-divider" />
               </li>

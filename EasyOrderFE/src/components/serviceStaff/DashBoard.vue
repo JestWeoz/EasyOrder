@@ -145,6 +145,15 @@ export default {
     clearMessages() {
       this.$emit('clear-messages')
     },
+    fetchTables() {
+      this.$emit('fetch-tables')
+    },
+    fetchTablesFromAPI() {
+      // Implementation of fetchTablesFromAPI method
+    },
+  },
+  mounted() {
+    this.fetchTables()
   },
 }
 </script>

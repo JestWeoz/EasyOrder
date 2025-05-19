@@ -30,6 +30,13 @@
             </a>
           </li>
 
+          <li class="sidebar-item" :class="{ active: activeComponent === 'Revenue' }">
+            <a class="sidebar-link" @click="changeComponent('Revenue')">
+              <i class="bi bi-graph-up"></i>
+              <span>Doanh thu</span>
+            </a>
+          </li>
+
           <li
             class="sidebar-item has-sub"
             :class="{
@@ -100,6 +107,9 @@ export default {
           break
         case 'AddStaff':
           this.router.push('/admin/staff/add')
+          break
+        case 'Revenue':
+          this.router.push('/admin/revenue')
           break
         default:
           this.router.push('/admin')

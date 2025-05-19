@@ -17,19 +17,19 @@
         <ul class="menu">
           <li class="sidebar-title">Menu</li>
 
-          <li class="sidebar-item" :class="{ active: activeComponent === 'Dashboard' }">
+          <li class="sidebar-item" :class="{ active: isActive('Dashboard') }">
             <a class="sidebar-link" @click="changeComponent('Dashboard')">
               <i class="bi bi-grid-fill"></i>
               <span>Trang chủ</span>
             </a>
           </li>
-          <li class="sidebar-item" :class="{ active: activeComponent === 'Orders' }">
+          <li class="sidebar-item" :class="{ active: isActive('Orders') }">
             <a class="sidebar-link" @click="changeComponent('Orders')">
               <i class="bi bi-grid-1x2-fill"></i>
               <span>Đơn hàng</span>
             </a>
           </li>
-          <li class="sidebar-item" :class="{ active: activeComponent === 'KitchenManager' }">
+          <li class="sidebar-item" :class="{ active: isActive('KitchenManager') }">
             <a class="sidebar-link" @click="changeComponent('KitchenManager')">
               <i class="bi bi-grid-1x2-fill"></i>
               <span>Bếp</span>
@@ -45,12 +45,6 @@
 <script>
 export default {
   name: 'ServiceStaffSideBar',
-  props: {
-    activeComponent: {
-      type: String,
-      default: 'TableManagement',
-    },
-  },
   methods: {
     toggleSubmenu(event) {
       event.preventDefault()
@@ -64,22 +58,30 @@ export default {
     },
     changeComponent(componentName) {
       this.$emit('change-component', componentName)
-
       // Chuyển router dựa trên component được chọn
       switch (componentName) {
         case 'Dashboard':
-          // Chuyển đến trang chủ/dashboard
           this.$router.push('/staff')
           break
         case 'Orders':
-          // Chuyển đến trang quản lý đơn hàng
           this.$router.push('/staff/orders')
           break
         case 'KitchenManager':
-          // Chuyển đến trang quản lý bếp
           this.$router.push('/staff/kitchen-management')
           break
       }
+    },
+    isActive(component) {
+      if (component === 'Dashboard') {
+        return this.$route.path === '/staff' || this.$route.path === '/staff/dashboard'
+      }
+      if (component === 'Orders') {
+        return this.$route.path.startsWith('/staff/orders')
+      }
+      if (component === 'KitchenManager') {
+        return this.$route.path.startsWith('/staff/kitchen-management')
+      }
+      return false
     },
   },
 }

@@ -39,12 +39,24 @@ export default {
     currentRouteName() {
       return this.route.name
     },
+    pageTitle() {
+      return  'Trang quản trị'
+    },
+  },
+  watch: {
+    pageTitle: {
+      immediate: true,
+      handler(newTitle) {
+        document.title = newTitle
+      },
+    },
   },
   created() {
     this.getUserInfo()
   },
   mounted() {
     this.initializeScripts()
+    document.title = this.pageTitle
   },
   methods: {
     initializeScripts() {

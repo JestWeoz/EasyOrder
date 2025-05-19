@@ -116,6 +116,9 @@ export default {
 
       try {
         const response = await axios.delete(`http://localhost:8081/menu/product`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
           params: {
             id: itemId,
           },
