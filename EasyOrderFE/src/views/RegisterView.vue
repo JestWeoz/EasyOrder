@@ -62,15 +62,46 @@
                 <i class="bi bi-shield-lock"></i>
               </div>
             </div>
+            <div class="form-group position-relative has-icon-left mb-4">
+              <input
+                v-model="form.firstName"
+                type="text"
+                class="form-control form-control-xl"
+                placeholder="Họ"
+                required
+              />
+              <div class="form-control-icon">
+                <i class="bi bi-person"></i>
+              </div>
+            </div>
+            <div class="form-group position-relative has-icon-left mb-4">
+              <input
+                v-model="form.lastName"
+                type="text"
+                class="form-control form-control-xl"
+                placeholder="Tên"
+                required
+              />
+              <div class="form-control-icon">
+                <i class="bi bi-person"></i>
+              </div>
+            </div>
+            <div class="form-group position-relative has-icon-left mb-4">
+              <input
+                v-model="form.phone"
+                type="text"
+                class="form-control form-control-xl"
+                placeholder="Số điện thoại"
+                required
+              />
+              <div class="form-control-icon">
+                <i class="bi bi-telephone"></i>
+              </div>
+            </div>
             <button type="submit" class="btn btn-primary btn-block btn-lg shadow-lg mt-5">
               Đăng Ký
             </button>
           </form>
-          <div class="text-center mt-5 text-lg fs-4">
-            <p class="text-gray-600">
-              Đã có tài khoản? <router-link to="/login" class="font-bold">Đăng nhập</router-link>
-            </p>
-          </div>
         </div>
       </div>
       <div class="col-lg-7 d-none d-lg-block">
@@ -91,6 +122,9 @@ export default {
         username: '',
         password: '',
         confirmPassword: '',
+        firstName: '',
+        lastName: '',
+        phone: '',
       },
     }
   },
@@ -101,14 +135,19 @@ export default {
         return
       }
       await axios
-        .post('http://localhost:8081/user/register', this.form)
+        .post('http://localhost:8081/user/register', this.form, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        })
         .then((response) => {
           console.log(response)
+          this.$router.push('/admin/staff')
         })
         .catch((error) => {
           console.log(error)
         })
-      this.$router.push('/login')
+      
     },
   },
 }

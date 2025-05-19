@@ -88,6 +88,7 @@ import axios from 'axios'
 
 export default {
   name: 'DashBoard',
+  inject: ['messages', 'clearMessages'],
   data() {
     return {
       messages: [],
@@ -148,6 +149,7 @@ export default {
         await axios.put(`http://localhost:8081/table`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
         })
         await this.getTables()

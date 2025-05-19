@@ -17,9 +17,10 @@ import ServiceStaffSideBar from '@/components/serviceStaff/SideBar.vue'
 import StaffServiceHeader from '@/components/serviceStaff/Header.vue'
 import axios from 'axios'
 import { jwtDecode } from 'jwt-decode'
+import { connectWebSocket, subscribe, disconnectWebSocket } from '@/utils/websocket'
 
 export default {
-  name: 'ServiceStaffView',
+  name: 'StaffView',
   components: {
     ServiceStaffSideBar,
     StaffServiceHeader,
@@ -41,6 +42,7 @@ export default {
     // Lấy thông tin người dùng từ token
     this.getUserInfo()
   },
+  beforeUnmount() {},
   watch: {
     // Theo dõi route thay đổi để cập nhật component đang active
     $route() {
@@ -94,23 +96,30 @@ export default {
 
         // Gọi API để lấy thông tin chi tiết của người dùng
         axios
-          .get('http://localhost:8081/user/info', {
+          .get('http://localhost:8081/user/getInfo', {
             headers: {
               Authorization: `Bearer ${token}`,
+            },
+            params: {
+              userName: decodedToken.sub,
             },
           })
           .then((response) => {
             console.log('Thông tin người dùng:', response.data)
             // Cập nhật thông tin người dùng
-            if (response.data && response.data.result) {
-              const userData = response.data.result
-              this.userInfo = {
-                name: userData.fullName || userData.username || decodedToken.sub,
-                role:
-                  userData.role ||
-                  (decodedToken.scope ? decodedToken.scope.join(', ') : 'Nhân viên'),
-                avatar: userData.avatar || '/src/assets/images/faces/1.jpg',
-              }
+
+            const userData = response.data.result
+            this.userInfo = {
+              name:
+                userData.firstName === null
+                  ? 'Admin'
+                  : userData.firstName + ' ' + userData.lastName,
+              role:
+                userData.roles[0].name ||
+                (Array.isArray(decodedToken.scope)
+                  ? decodedToken.scope.join(', ')
+                  : decodedToken.scope || 'Nhân viên'),
+              avatar: userData.avatar || '/src/assets/images/faces/1.jpg',
             }
           })
           .catch((error) => {
@@ -118,7 +127,11 @@ export default {
             // Sử dụng thông tin cơ bản từ token
             this.userInfo = {
               name: decodedToken.sub || 'Người dùng',
-              role: decodedToken.scope ? decodedToken.scope.join(', ') : 'Nhân viên',
+              role:
+                userData.roles[0].name ||
+                (Array.isArray(decodedToken.scope)
+                  ? decodedToken.scope.join(', ')
+                  : decodedToken.scope || 'Nhân viên'),
               avatar: '/src/assets/images/faces/1.jpg',
             }
           })
@@ -152,4 +165,4 @@ export default {
     margin-left: 0;
   }
 }
-</style> 
+</style>

@@ -87,7 +87,7 @@ export default {
           if (decodedToken.scope.includes('ADMIN')) {
             this.$router.push('/admin')
           } else if (decodedToken.scope.includes('STAFF')) {
-            this.$router.push('/service-staff/dashboard')
+            this.$router.push('/staff/dashboard')
           }
           console.log('Login successful:', response.data)
         })

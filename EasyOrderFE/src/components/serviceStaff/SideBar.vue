@@ -69,15 +69,15 @@ export default {
       switch (componentName) {
         case 'Dashboard':
           // Chuyển đến trang chủ/dashboard
-          this.$router.push('/service-staff')
+          this.$router.push('/staff')
           break
         case 'Orders':
           // Chuyển đến trang quản lý đơn hàng
-          this.$router.push('/service-staff/orders')
+          this.$router.push('/staff/orders')
           break
         case 'KitchenManager':
           // Chuyển đến trang quản lý bếp
-          this.$router.push('/service-staff/kitchen-management')
+          this.$router.push('/staff/kitchen-management')
           break
       }
     },

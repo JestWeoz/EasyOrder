@@ -181,7 +181,11 @@ export default {
   methods: {
     async fetchTables() {
       try {
-        const response = await axios.get('http://localhost:8081/table/getAll')
+        const response = await axios.get('http://localhost:8081/table/getAll', {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        })
         this.tables = response.data.result.map((table) => ({
           ...table,
         }))

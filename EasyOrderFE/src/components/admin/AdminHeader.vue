@@ -66,19 +66,19 @@
             >
               <div class="user-menu d-flex">
                 <div class="user-name text-end me-3">
-                  <h6 class="mb-0 text-gray-600">Quoc Tuan</h6>
-                  <p class="mb-0 text-sm text-gray-600">Administrator</p>
+                  <h6 class="mb-0 text-gray-600">{{ userInfo.name }}</h6>
+                  <p class="mb-0 text-sm text-gray-600">{{ userInfo.role }}</p>
                 </div>
                 <div class="user-img d-flex align-items-center">
                   <div class="avatar avatar-md">
-                    <img src="/src/assets/images/faces/1.jpg" />
+                    <img :src="userInfo.avatar" />
                   </div>
                 </div>
               </div>
             </a>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
               <li>
-                <h6 class="dropdown-header">Hello, Quoc Tuan!</h6>
+                <h6 class="dropdown-header">Hello, {{ userInfo.name }}!</h6>
               </li>
               <li>
                 <a class="dropdown-item"><i class="icon-mid bi bi-person me-2"></i> My Profile</a>
@@ -93,7 +93,7 @@
                 <hr class="dropdown-divider" />
               </li>
               <li>
-                <a class="dropdown-item" @click="logout">
+                <a class="dropdown-item" @click="$emit('logout')">
                   <i class="icon-mid bi bi-box-arrow-left me-2"></i> Logout
                 </a>
               </li>
@@ -110,13 +110,20 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 
 export default {
   name: 'AdminHeader',
+  props: {
+    userInfo: {
+      type: Object,
+      required: true,
+      default: () => ({
+        name: 'Người dùng',
+        role: 'Admin',
+        avatar: '/src/assets/images/faces/1.jpg',
+      }),
+    },
+  },
   methods: {
     handleMailClick() {
       console.log('Mail clicked')
-    },
-    logout() {
-      localStorage.removeItem('token')
-      this.$router.push('/login')
     },
   },
 }

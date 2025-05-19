@@ -30,6 +30,31 @@
     <AddProductModal ref="addModal" :categories="categories" @add-item="addItem" />
 
     <AddCategoryModal ref="addCategoryModal" @add-category="addCategory" />
+
+    <!-- Loading Spinner -->
+    <div v-if="isAddingItem || isAddingCategory" class="loading-overlay">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div v-show="showSuccessModal" class="modal-overlay">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Thông báo</h5>
+          <button type="button" class="btn-close" @click="showSuccessModal = false"></button>
+        </div>
+        <div class="modal-body">
+          {{ successMessage }}
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" @click="showSuccessModal = false">
+            Đóng
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -53,6 +78,10 @@ export default {
       categories: [],
       loading: true,
       error: null,
+      isAddingItem: false,
+      isAddingCategory: false,
+      showSuccessModal: false,
+      successMessage: '',
       editingItem: {
         id: null,
         name: '',
@@ -129,6 +158,7 @@ export default {
         const response = await axios.put(`http://localhost:8081/menu/product`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
         })
 
@@ -154,6 +184,7 @@ export default {
     },
     async addItem(item, image) {
       try {
+        this.isAddingItem = true
         const formData = new FormData()
         formData.append('name', item.name)
         formData.append('price', item.price)
@@ -169,15 +200,18 @@ export default {
         const response = await axios.post(`http://localhost:8081/menu/product`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
         })
 
         if (response.data.code === 1000) {
           this.fetchMenuItems()
           this.$refs.addModal.hide()
-          alert('Thêm món ăn thành công!')
+          this.successMessage = 'Thêm món ăn thành công!'
+          this.showSuccessModal = true
         } else {
           this.error = response.data.message || 'Không thể thêm món ăn. Vui lòng thử lại sau.'
+          alert(this.error)
         }
       } catch (error) {
         console.error('Lỗi khi thêm món ăn:', error)
@@ -187,6 +221,8 @@ export default {
           this.error = 'Không thể kết nối đến server. Vui lòng thử lại sau.'
         }
         alert(this.error)
+      } finally {
+        this.isAddingItem = false
       }
     },
     openAddCategoryModal() {
@@ -194,16 +230,27 @@ export default {
     },
     async addCategory(category) {
       try {
-        const response = await axios.post(`http://localhost:8081/menu/category`, {
-          name: category.name,
-        })
+        this.isAddingCategory = true
+        const response = await axios.post(
+          `http://localhost:8081/menu/category`,
+          {
+            name: category.name,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('token')}`,
+            },
+          }
+        )
 
         if (response.data.code === 1000) {
           this.fetchMenuItems()
           this.$refs.addCategoryModal.hide()
-          alert('Thêm danh mục thành công!')
+          this.successMessage = 'Thêm danh mục thành công!'
+          this.showSuccessModal = true
         } else {
           this.error = response.data.message || 'Không thể thêm danh mục. Vui lòng thử lại sau.'
+          alert(this.error)
         }
       } catch (error) {
         console.error('Lỗi khi thêm danh mục:', error)
@@ -213,6 +260,8 @@ export default {
           this.error = 'Không thể kết nối đến server. Vui lòng thử lại sau.'
         }
         alert(this.error)
+      } finally {
+        this.isAddingCategory = false
       }
     },
   },
@@ -229,5 +278,85 @@ export default {
 
 .page-title {
   margin-bottom: 2rem;
+}
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modal-content {
+  background-color: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+  padding: 1rem;
+  border-bottom: 1px solid #dee2e6;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-body {
+  padding: 1rem;
+}
+
+.modal-footer {
+  padding: 1rem;
+  border-top: 1px solid #dee2e6;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+.btn-primary {
+  background-color: #0d6efd;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background-color: #0b5ed7;
 }
 </style> 

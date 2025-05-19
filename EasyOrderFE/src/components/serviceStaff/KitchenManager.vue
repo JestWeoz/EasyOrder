@@ -23,22 +23,19 @@
               <div v-else class="order-grid">
                 <div v-for="order in pendingOrders" :key="order.id" class="order-card">
                   <div class="order-header">
-                    <h5>Bàn {{ order.tableNumber }}</h5>
+                    <h5>{{ order.table.name }}</h5>
                     <span class="badge bg-warning">{{ formatOrderStatus(order.status) }}</span>
                   </div>
                   <div class="order-details">
                     <p><strong>Mã đơn:</strong> #{{ order.id }}</p>
-                    <p><strong>Thời gian:</strong> {{ formatTime(order.createdAt) }}</p>
+                    <p><strong>Thời gian:</strong> {{ formatTime(order.created_at) }}</p>
+                    <p v-if="order.note"><strong>Ghi chú:</strong> {{ order.note }}</p>
                   </div>
                   <div class="order-items">
                     <h6>Món ăn:</h6>
                     <ul>
-                      <li v-for="item in order.items" :key="item.id">
-                        {{ item.quantity }}x {{ item.name }}
-                        <span v-if="item.note" class="item-note">
-                          <i class="bi bi-info-circle"></i>
-                          {{ item.note }}
-                        </span>
+                      <li v-for="item in order.orderItems" :key="item.id">
+                        {{ item.quantity }}x {{ item.product.name }}
                       </li>
                     </ul>
                   </div>
@@ -82,16 +79,13 @@
                   <div class="order-details">
                     <p><strong>Mã đơn:</strong> #{{ order.id }}</p>
                     <p><strong>Thời gian:</strong> {{ formatTime(order.createdAt) }}</p>
+                    <p v-if="order.note"><strong>Ghi chú:</strong> {{ order.note }}</p>
                   </div>
                   <div class="order-items">
                     <h6>Món ăn:</h6>
                     <ul>
                       <li v-for="item in order.items" :key="item.id">
                         {{ item.quantity }}x {{ item.name }}
-                        <span v-if="item.note" class="item-note">
-                          <i class="bi bi-info-circle"></i>
-                          {{ item.note }}
-                        </span>
                       </li>
                     </ul>
                   </div>
@@ -111,103 +105,153 @@
 </template>
 
 <script>
+import axios from 'axios'
+
 export default {
   name: 'KitchenManager',
   data() {
     return {
-      pendingOrders: [
-        {
-          id: 1001,
-          tableNumber: '01',
-          status: 'pending',
-          createdAt: new Date(),
-          items: [
-            { id: 1, name: 'Gà rán', quantity: 2, note: 'Không cay' },
-            { id: 2, name: 'Hamburger bò', quantity: 1, note: '' },
-            { id: 3, name: 'Khoai tây chiên', quantity: 2, note: 'Thêm sốt cà' },
-          ],
-        },
-        {
-          id: 1002,
-          tableNumber: '03',
-          status: 'pending',
-          createdAt: new Date(Date.now() - 10 * 60000),
-          items: [
-            { id: 4, name: 'Pizza hải sản', quantity: 1, note: 'Không hành' },
-            { id: 5, name: 'Mỳ Ý', quantity: 1, note: '' },
-          ],
-        },
-      ],
-      processingOrders: [
-        {
-          id: 1000,
-          tableNumber: '02',
-          status: 'processing',
-          createdAt: new Date(Date.now() - 15 * 60000),
-          items: [
-            { id: 6, name: 'Lẩu Thái', quantity: 1, note: 'Cay vừa' },
-            { id: 7, name: 'Cơm chiên', quantity: 2, note: '' },
-          ],
-        },
-      ],
+      pendingOrders: [],
+      processingOrders: [],
+      loading: false,
+      error: null,
     }
   },
   methods: {
     formatOrderStatus(status) {
       switch (status) {
-        case 'pending':
+        case 'PENDING':
+          return 'Chờ xác nhận'
+        case 'CONFIRMED':
           return 'Chờ chế biến'
-        case 'processing':
+        case 'PREPARING':
           return 'Đang chế biến'
-        case 'completed':
+        case 'READY':
+          return 'Sẵn sàng phục vụ'
+        case 'COMPLETED':
           return 'Hoàn thành'
+        case 'CANCELLED':
+          return 'Đã hủy'
         default:
           return status
       }
     },
     formatTime(date) {
-      return new Date(date).toLocaleTimeString('vi-VN', {
-        hour: '2-digit',
-        minute: '2-digit',
-      })
-    },
-    startProcessing(orderId) {
-      // Tìm đơn hàng cần xử lý
-      const orderIndex = this.pendingOrders.findIndex((order) => order.id === orderId)
-      if (orderIndex >= 0) {
-        const order = { ...this.pendingOrders[orderIndex] }
-        order.status = 'processing'
-
-        // Xóa khỏi danh sách chờ và thêm vào danh sách đang xử lý
-        this.pendingOrders.splice(orderIndex, 1)
-        this.processingOrders.push(order)
-
-        // Gửi yêu cầu API để cập nhật trạng thái (trong thực tế)
-        // this.updateOrderStatus(orderId, 'processing')
+      if (!date) return 'N/A'
+      try {
+        const dateObj = new Date(date)
+        return dateObj.toLocaleTimeString('vi-VN', {
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+      } catch (e) {
+        return 'N/A'
       }
     },
-    completeOrder(orderId) {
-      // Tìm đơn hàng trong cả hai danh sách
-      let orderIndex = this.pendingOrders.findIndex((order) => order.id === orderId)
-      let fromPending = true
+    async startProcessing(orderId) {
+      try {
+        // Tìm đơn hàng cần xử lý
+        const orderIndex = this.pendingOrders.findIndex((order) => order.id === orderId)
+        if (orderIndex >= 0) {
+          const order = { ...this.pendingOrders[orderIndex] }
 
-      if (orderIndex < 0) {
-        orderIndex = this.processingOrders.findIndex((order) => order.id === orderId)
-        fromPending = false
-      }
+          // Gọi API để cập nhật trạng thái
+          await this.updateOrder(orderId, {
+            status: 'PREPARING',
+          })
 
-      if (orderIndex >= 0) {
-        // Xóa đơn hàng khỏi danh sách tương ứng
-        if (fromPending) {
+          // Cập nhật UI
+          order.status = 'PREPARING'
           this.pendingOrders.splice(orderIndex, 1)
-        } else {
-          this.processingOrders.splice(orderIndex, 1)
+          this.processingOrders.push(order)
+        }
+      } catch (error) {
+        this.error = 'Lỗi khi bắt đầu chế biến đơn hàng'
+        console.error(error)
+      }
+    },
+    async completeOrder(orderId) {
+      try {
+        // Tìm đơn hàng trong cả hai danh sách
+        let orderIndex = this.pendingOrders.findIndex((order) => order.id === orderId)
+        let fromPending = true
+
+        if (orderIndex < 0) {
+          orderIndex = this.processingOrders.findIndex((order) => order.id === orderId)
+          fromPending = false
         }
 
-        // Gửi yêu cầu API để cập nhật trạng thái (trong thực tế)
-        // this.updateOrderStatus(orderId, 'completed')
+        if (orderIndex >= 0) {
+          // Gọi API để cập nhật trạng thái
+          await this.updateOrder(orderId, {
+            status: 'READY',
+          })
+
+          // Cập nhật UI
+          if (fromPending) {
+            this.pendingOrders.splice(orderIndex, 1)
+          } else {
+            this.processingOrders.splice(orderIndex, 1)
+          }
+        }
+      } catch (error) {
+        this.error = 'Lỗi khi hoàn thành đơn hàng'
+        console.error(error)
       }
     },
+    async updateOrder(orderId, updateData) {
+      try {
+        this.loading = true
+        // Tìm đơn hàng hiện tại
+        const currentOrder = [...this.pendingOrders, ...this.processingOrders].find(
+          (o) => o.id === orderId
+        )
+        if (!currentOrder) {
+          throw new Error('Không tìm thấy đơn hàng')
+        }
+
+        // Tạo OrderReq với dữ liệu hiện tại và cập nhật mới
+        const orderReq = {
+          orderId: orderId,
+          tableId: currentOrder.table?.id,
+          orderItems: currentOrder.items,
+          totalAmount: currentOrder.totalAmount,
+          status: updateData.status || currentOrder.status,
+          note: currentOrder.note,
+          paymentMethod: currentOrder.paymentMethod,
+          isPaid: currentOrder.isPaid,
+          customerName: currentOrder.customerName,
+          customerPhone: currentOrder.customerPhone,
+        }
+
+        // Gọi API để cập nhật đơn hàng
+        await axios.put(`http://localhost:8081/order/updateOrder`, orderReq)
+      } catch (error) {
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+    async fetchOrders() {
+      try {
+        this.loading = true
+        const response = await axios.get('http://localhost:8081/order/getAll')
+        const allOrders = response.data.result || []
+        console.log(allOrders)
+        // Phân loại đơn hàng
+        this.pendingOrders = allOrders.filter((order) => order.status === 'CONFIRMED')
+        this.processingOrders = allOrders.filter((order) => order.status === 'PREPARING')
+      } catch (error) {
+        this.error = 'Lỗi khi tải danh sách đơn hàng'
+        console.error(error)
+      } finally {
+        this.loading = false
+      }
+    },
+  },
+  created() {
+    // Tải danh sách đơn hàng khi component được tạo
+    this.fetchOrders()
   },
 }
 </script>

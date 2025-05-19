@@ -4,13 +4,14 @@ import AdminView from '../views/AdminView.vue'
 import MenuManagement from '../components/admin/MenuManagement.vue'
 import TableManagement from '../components/admin/TableManagement.vue'
 import StaffManagement from '../components/admin/StaffManagement.vue'
-import ServiceStaffView from '../views/ServiceStaff.vue'
+import StaffView from '../views/Staff.vue'
 import LoginView from '../views/LoginView.vue'
 import RegisterView from '../views/RegisterView.vue'
 import { jwtDecode } from 'jwt-decode'
 import Dashboard from '../components/serviceStaff/Dashboard.vue'
 import Orders from '@/components/serviceStaff/Orders.vue'
 import KitchenManager from '@/components/serviceStaff/KitchenManager.vue'
+
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -21,9 +22,9 @@ const router = createRouter({
             component: MenuView
         },
         {
-            path: '/service-staff',
-            name: 'ServiceStaff',
-            component: ServiceStaffView,
+            path: '/staff',
+            name: 'Staff',
+            component: StaffView,
             children: [
                 {
                     path: '',
@@ -44,7 +45,8 @@ const router = createRouter({
                     path: 'kitchen-management',
                     name: 'KitchenManager',
                     component: KitchenManager
-                }
+                },
+               
             ]
         },
         {

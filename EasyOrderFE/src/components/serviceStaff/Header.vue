@@ -19,7 +19,39 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
           <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-            <li class="nav-item dropdown me-1"></li>
+            <li class="nav-item dropdown me-3">
+              <a
+                class="nav-link active dropdown-toggle"
+                href="#"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                id="notificationDropdown"
+                @click="markNotificationsAsRead"
+              >
+                <i class="bi bi-bell bi-sub fs-4 text-gray-600"></i>
+                <span
+                  v-if="unreadNotifications > 0"
+                  class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                >
+                  {{ unreadNotifications }}
+                </span>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown">
+                <li>
+                  <h6 class="dropdown-header">Notifications</h6>
+                </li>
+                <li v-if="messages.length === 0">
+                  <a class="dropdown-item">No notification available</a>
+                </li>
+                <li v-for="(notification, index) in messages" :key="index">
+                  <a class="dropdown-item">
+                    <small class="text-muted">{{ notification.timestamp }}</small>
+                    <div>{{ notification.content }}</div>
+                  </a>
+                </li>
+              </ul>
+            </li>
           </ul>
 
           <div class="dropdown">
@@ -86,12 +118,29 @@ export default {
       }),
     },
   },
+
+  data() {
+    return {
+      notifications: [],
+      socket: null,
+      retryCount: 0,
+      maxRetries: 3,
+      retryDelay: 3000,
+      messages: [],
+      unreadNotifications: 0,
+    }
+  },
+  computed: {
+    // Xóa unreadNotifications ở đây vì đã nhận qua props
+  },
+
   methods: {
-    handleMailClick() {
-      console.log('Mail clicked')
-    },
     logout() {
       this.$emit('logout')
+    },
+    markNotificationsAsRead() {
+      this.unreadNotifications = 0
+      // Có thể thêm logic để đánh dấu thông báo đã đọc ở đây
     },
   },
 }
@@ -101,5 +150,10 @@ export default {
 a {
   text-decoration: none;
   cursor: pointer;
+}
+
+.badge {
+  font-size: 0.7rem;
+  padding: 0.25em 0.6em;
 }
 </style> 

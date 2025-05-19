@@ -203,66 +203,83 @@ export default {
       this.paymentOrder = orderCopy
     },
 
-    // Hàm xử lý thanh toán
-    async processPayment(paymentData) {
+    // Hàm cập nhật đơn hàng chung
+    async updateOrder(orderId, updateData) {
       try {
         this.loading = true
-        // Gọi API để cập nhật trạng thái và phương thức thanh toán
-        await axios.post(`http://localhost:8081/order/payment/${paymentData.orderId}`, {
-          paymentMethod: paymentData.paymentMethod,
-        })
+        // Tìm đơn hàng hiện tại
+        const currentOrder = this.orders.find((o) => o.id === orderId)
+        if (!currentOrder) {
+          throw new Error('Không tìm thấy đơn hàng')
+        }
 
-        // Cập nhật trạng thái đơn hàng thành COMPLETED
-        await this.updateOrderStatus({
-          id: paymentData.orderId,
-          status: 'COMPLETED',
-        })
+        // Tạo OrderReq với dữ liệu hiện tại và cập nhật mới
+        const orderReq = {
+          orderId: orderId,
+          tableId: currentOrder.table?.id,
+          orderItems: currentOrder.items,
+          totalAmount: currentOrder.totalAmount,
+          status: updateData.status || currentOrder.status,
+          note: currentOrder.note,
+          paymentMethod: updateData.paymentMethod || currentOrder.paymentMethod,
+          isPaid: updateData.isPaid || currentOrder.isPaid,
+          customerName: currentOrder.customerName,
+          customerPhone: currentOrder.customerPhone,
+        }
 
-        // Đóng modal thanh toán
-        this.paymentOrder = null
+        // Gọi API để cập nhật đơn hàng
+        await axios.put(`http://localhost:8081/order/updateOrder`, orderReq)
+
+        // Cập nhật lại danh sách đơn hàng
+        const index = this.orders.findIndex((o) => o.id === orderId)
+        if (index !== -1) {
+          this.orders[index] = { ...this.orders[index], ...updateData }
+        }
+
+        // Đóng modal nếu đang mở
+        if (this.selectedOrder && this.selectedOrder.id === orderId) {
+          this.selectedOrder = { ...this.selectedOrder, ...updateData }
+        }
 
         // Hiển thị thông báo thành công
-        console.log(`Đã thanh toán đơn hàng #${paymentData.orderId}`)
-
-        // Reload danh sách đơn hàng
-        this.fetchOrders()
+        console.log(`Đã cập nhật đơn hàng #${orderId}`)
       } catch (error) {
-        this.error = 'Lỗi khi xử lý thanh toán'
+        this.error = 'Lỗi khi cập nhật đơn hàng'
         console.error(error)
       } finally {
         this.loading = false
       }
     },
 
+    // Hàm xử lý thanh toán
+    async processPayment(paymentData) {
+      try {
+        await this.updateOrder(paymentData.orderId, {
+          status: 'COMPLETED',
+          paymentMethod: paymentData.paymentMethod,
+          isPaid: true,
+        })
+
+        // Đóng modal thanh toán
+        this.paymentOrder = null
+
+        // Reload danh sách đơn hàng
+        this.fetchOrders()
+      } catch (error) {
+        this.error = 'Lỗi khi xử lý thanh toán'
+        console.error(error)
+      }
+    },
+
     // Hàm cập nhật trạng thái đơn hàng
     async updateOrderStatus(order) {
       try {
-        this.loading = true
-        // Gọi API để cập nhật trạng thái
-        await axios.put(`http://localhost:8081/order/updateStatus/${order.id}`, {
+        await this.updateOrder(order.id, {
           status: order.status,
         })
-
-        // Cập nhật lại danh sách đơn hàng
-        const index = this.orders.findIndex((o) => o.id === order.id)
-        if (index !== -1) {
-          this.orders[index].status = order.status
-        }
-
-        // Đóng modal nếu đang mở
-        if (this.selectedOrder && this.selectedOrder.id === order.id) {
-          this.selectedOrder.status = order.status
-        }
-
-        // Hiển thị thông báo thành công
-        console.log(
-          `Đã cập nhật trạng thái đơn hàng #${order.id} thành ${this.getStatusLabel(order.status)}`
-        )
       } catch (error) {
         this.error = 'Lỗi khi cập nhật trạng thái đơn hàng'
         console.error(error)
-      } finally {
-        this.loading = false
       }
     },
 
