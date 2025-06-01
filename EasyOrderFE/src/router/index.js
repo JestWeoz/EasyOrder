@@ -12,7 +12,7 @@ import { jwtDecode } from 'jwt-decode'
 import Dashboard from '../components/serviceStaff/Dashboard.vue'
 import Orders from '@/components/serviceStaff/Orders.vue'
 import KitchenManager from '@/components/serviceStaff/KitchenManager.vue'
-
+import Storage from '@/components/serviceStaff/Storage.vue'
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -47,6 +47,11 @@ const router = createRouter({
                     name: 'KitchenManager',
                     component: KitchenManager
                 },
+                {
+                    path: 'storage',
+                    name: 'Storage',
+                    component: Storage
+                }
 
             ]
         },

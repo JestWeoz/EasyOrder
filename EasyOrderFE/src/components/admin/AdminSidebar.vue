@@ -37,26 +37,11 @@
             </a>
           </li>
 
-          <li
-            class="sidebar-item has-sub"
-            :class="{
-              active: activeComponent === 'StaffManagement' || activeComponent === 'AddStaff',
-            }"
-          >
-            <a class="sidebar-link" @click="toggleSubmenu">
+          <li class="sidebar-item" :class="{ active: activeComponent === 'StaffManagement' }">
+            <a class="sidebar-link" @click="changeComponent('StaffManagement')">
               <i class="bi bi-grid-1x2-fill"></i>
               <span>Quản lý nhân viên</span>
             </a>
-            <ul
-              class="submenu"
-              :class="{
-                active: activeComponent === 'StaffManagement' || activeComponent === 'AddStaff',
-              }"
-            >
-              <li class="submenu-item" :class="{ active: activeComponent === 'StaffManagement' }">
-                <a @click="changeComponent('StaffManagement')">Danh sách nhân viên</a>
-              </li>
-            </ul>
           </li>
         </ul>
       </div>
@@ -104,9 +89,6 @@ export default {
           break
         case 'StaffManagement':
           this.router.push('/admin/staff')
-          break
-        case 'AddStaff':
-          this.router.push('/admin/staff/add')
           break
         case 'Revenue':
           this.router.push('/admin/revenue')

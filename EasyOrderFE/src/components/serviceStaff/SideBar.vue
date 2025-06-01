@@ -29,11 +29,25 @@
               <span>Đơn hàng</span>
             </a>
           </li>
-          <li class="sidebar-item" :class="{ active: isActive('KitchenManager') }">
-            <a class="sidebar-link" @click="changeComponent('KitchenManager')">
+          <li
+            class="sidebar-item has-sub"
+            :class="{ active: isActive('KitchenManager') || isActive('Storage') }"
+          >
+            <a class="sidebar-link" @click="toggleSubmenu">
               <i class="bi bi-grid-1x2-fill"></i>
               <span>Bếp</span>
             </a>
+            <ul
+              class="submenu"
+              :class="{ active: isActive('KitchenManager') || isActive('Storage') }"
+            >
+              <li class="submenu-item" :class="{ active: isActive('KitchenManager') }">
+                <a @click="changeComponent('KitchenManager')">Chế biến</a>
+              </li>
+              <li class="submenu-item" :class="{ active: isActive('Storage') }">
+                <a @click="changeComponent('Storage')">Kho</a>
+              </li>
+            </ul>
           </li>
         </ul>
       </div>
@@ -69,6 +83,9 @@ export default {
         case 'KitchenManager':
           this.$router.push('/staff/kitchen-management')
           break
+        case 'Storage':
+          this.$router.push('/staff/storage')
+          break
       }
     },
     isActive(component) {
@@ -80,6 +97,9 @@ export default {
       }
       if (component === 'KitchenManager') {
         return this.$route.path.startsWith('/staff/kitchen-management')
+      }
+      if (component === 'Storage') {
+        return this.$route.path.startsWith('/staff/storage')
       }
       return false
     },

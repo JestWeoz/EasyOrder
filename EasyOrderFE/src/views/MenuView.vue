@@ -13,7 +13,12 @@
           v-model:isSearchPageOpen="isSearchPageOpen"
           v-model:isOrderPageOpen="isOrderPageOpen"
         />
-        <ActionButtons :tableId="tableId" :tableInfo="tableInfo" />
+        <ActionButtons
+          :tableId="tableId"
+          :tableInfo="tableInfo"
+          @send-staff-request="sendStaffRequest"
+          @send-checkout-request="sendCheckoutRequest"
+        />
         <CategoryTabs
           :categories="tabs"
           :activeTab="activeTab"
@@ -45,7 +50,8 @@
     @checkout="checkout"
   />
   <OrderPage v-model:isOpen="isOrderPageOpen" :tableId="tableId" />
-  <StaffCallModal ref="staffModalRef" />
+  <StaffCallModal ref="staffModalRef" @send-staff-request="sendStaffRequest" />
+  <CheckoutModal ref="checkoutModalRef" @send-checkout-request="sendCheckoutRequest" />
   <button v-show="showScrollTop" @click="scrollToTop" class="scroll-top-btn">
     <i class="bi bi-arrow-up-short"></i>
   </button>
@@ -75,7 +81,8 @@ import CartSlideup from '@/components/menu/CartSlideup.vue'
 import CartBar from '@/components/menu/CartBar.vue'
 import OrderPage from '@/components/menu/OrderPage.vue'
 import StaffCallModal from '@/components/menu/StaffCallModal.vue'
-import { sendMessage } from '@/utils/websocket'
+import CheckoutModal from '@/components/menu/CheckoutModal.vue'
+import { sendMessage, connectWebSocket, disconnectWebSocket } from '@/utils/websocket'
 import { useRoute } from 'vue-router'
 
 export default {
@@ -89,6 +96,7 @@ export default {
     CartBar,
     OrderPage,
     StaffCallModal,
+    CheckoutModal,
   },
   setup() {
     const activeTab = ref('all')
@@ -105,6 +113,7 @@ export default {
     const tableId = Number(route.query.idTable)
     const tableInfo = ref({})
     const staffModalRef = ref(null)
+    const checkoutModalRef = ref(null)
 
     const allProducts = computed(() => {
       return categories.value.reduce((acc, category) => {
@@ -140,11 +149,23 @@ export default {
       }
     }
 
+    const handleWebSocketConnection = () => {
+      connectWebSocket(
+        () => {
+          console.log('WebSocket connected successfully')
+        },
+        (error) => {
+          console.error('WebSocket connection error:', error)
+        }
+      )
+    }
+
     onMounted(async () => {
       await getTable()
       await getMenu()
       window.addEventListener('scroll', handleScroll)
       document.title = pageTitle.value
+      handleWebSocketConnection()
     })
 
     watch(isOrderPageOpen, (newValue) => {
@@ -159,6 +180,7 @@ export default {
 
     onUnmounted(() => {
       window.removeEventListener('scroll', handleScroll)
+      disconnectWebSocket() // Ngắt kết nối WebSocket khi rời trang
     })
 
     const addItem = (item) => {
@@ -212,32 +234,76 @@ export default {
         const response = await axios.post('http://localhost:8081/order', orderRequest)
         console.log(response)
         cart.value = []
-        isCartVisible.value = false
+
+        // Gửi thông báo qua WebSocket
+        try {
+          const message = {
+            tableId: tableInfo.value.name,
+            message: 'Có đơn hàng mới',
+            type: 'NEW_ORDER',
+          }
+          sendMessage('/app/call-staff', message)
+        } catch (error) {
+          console.error('Lỗi khi gửi thông báo WebSocket:', error)
+        }
       } catch (error) {
         console.error('Lỗi khi đặt món:', error)
         alert('Có lỗi xảy ra khi đặt món. Vui lòng thử lại sau.')
+      } finally {
+        isCartVisible.value = false
+      }
+    }
+
+    const sendStaffRequest = (message) => {
+      console.log('sendStaffRequest được gọi với message:', message)
+      const staffMessage = {
+        tableId: tableInfo.value.name,
+        message: message,
+        type: 'STAFF_CALL',
+      }
+      try {
+        const result = sendMessage('/app/call-staff', staffMessage)
+        if (!result) {
+          alert('Không thể gửi yêu cầu. Vui lòng thử lại sau.')
+        }
+      } catch (error) {
+        console.error('Lỗi khi gửi yêu cầu:', error)
+        alert('Có lỗi xảy ra khi gửi yêu cầu. Vui lòng thử lại sau.')
       }
     }
 
     const showStaffModal = (tableId) => {
+      console.log('showStaffModal được gọi với tableId:', tableId)
       if (staffModalRef.value) {
+        console.log('staffModalRef.value:', staffModalRef.value)
         staffModalRef.value.tableId = tableId
         staffModalRef.value.tableInfo = tableInfo.value
         staffModalRef.value.showModal()
+      } else {
+        console.log('staffModalRef chưa được mount')
       }
     }
 
-    const requestCheckout = () => {
+    const showCheckoutModal = () => {
+      if (checkoutModalRef.value) {
+        checkoutModalRef.value.tableId = tableId
+        checkoutModalRef.value.tableInfo = tableInfo.value
+        checkoutModalRef.value.showModal()
+      }
+    }
+
+    const sendCheckoutRequest = () => {
       const message = {
-        tableId: tableId,
-        tableName: tableInfo.value.name,
+        tableId: tableInfo.value.name,
+        message: 'Gọi thanh toán',
         type: 'CHECKOUT_REQUEST',
       }
 
-      if (sendMessage('/app/checkout', message)) {
-        alert('Đã gửi yêu cầu thanh toán')
+      if (sendMessage('/app/call-staff', message)) {
+        return true
       } else {
         alert('Không thể gửi yêu cầu thanh toán. Vui lòng thử lại sau.')
+        return false
       }
     }
 
@@ -278,7 +344,9 @@ export default {
       categories,
       tabs,
       showStaffModal,
-      requestCheckout,
+      showCheckoutModal,
+      sendStaffRequest,
+      sendCheckoutRequest,
       isSidebarOpen,
       isSearchPageOpen,
       isOrderPageOpen,
@@ -293,6 +361,7 @@ export default {
       tableId,
       tableInfo,
       staffModalRef,
+      checkoutModalRef,
       pageTitle,
     }
   },

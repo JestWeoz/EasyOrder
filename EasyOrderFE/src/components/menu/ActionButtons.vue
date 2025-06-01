@@ -13,14 +13,13 @@
       </button>
     </div>
 
-    <StaffCallModal ref="staffModalRef" />
-    <CheckoutModal ref="checkoutModalRef" />
+    <StaffCallModal ref="staffModalRef" @send-staff-request="handleStaffRequest" />
+    <CheckoutModal ref="checkoutModalRef" @send-checkout-request="handleCheckoutRequest" />
   </div>
 </template>
 
 <script>
 import { ref } from 'vue'
-import { sendMessage } from '@/utils/websocket'
 import StaffCallModal from './StaffCallModal.vue'
 import CheckoutModal from './CheckoutModal.vue'
 
@@ -40,7 +39,8 @@ export default {
       default: () => ({}),
     },
   },
-  setup(props) {
+  emits: ['send-staff-request', 'send-checkout-request'],
+  setup(props, { emit }) {
     const staffModalRef = ref(null)
     const checkoutModalRef = ref(null)
 
@@ -60,11 +60,21 @@ export default {
       }
     }
 
+    const handleStaffRequest = (message) => {
+      emit('send-staff-request', message)
+    }
+
+    const handleCheckoutRequest = () => {
+      emit('send-checkout-request')
+    }
+
     return {
       staffModalRef,
       checkoutModalRef,
       showStaffModal,
       showCheckoutModal,
+      handleStaffRequest,
+      handleCheckoutRequest,
     }
   },
 }

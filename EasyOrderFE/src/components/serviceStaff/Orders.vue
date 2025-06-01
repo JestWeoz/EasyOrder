@@ -27,10 +27,27 @@
       <table class="order-table">
         <thead>
           <tr>
-            <th>Mã đơn</th>
-            <th>Bàn</th>
-            <th>Thời gian</th>
-            <th>Tổng tiền</th>
+            <th @click="sortBy('table')" style="cursor: pointer">
+              Bàn
+              <span v-if="sortKey === 'table'">
+                <span v-if="sortOrder === 1">&#9650;</span>
+                <span v-else>&#9660;</span>
+              </span>
+            </th>
+            <th @click="sortBy('created_at')" style="cursor: pointer">
+              Thời gian
+              <span v-if="sortKey === 'created_at'">
+                <span v-if="sortOrder === 1">&#9650;</span>
+                <span v-else>&#9660;</span>
+              </span>
+            </th>
+            <th @click="sortBy('totalAmount')" style="cursor: pointer">
+              Tổng tiền
+              <span v-if="sortKey === 'totalAmount'">
+                <span v-if="sortOrder === 1">&#9650;</span>
+                <span v-else>&#9660;</span>
+              </span>
+            </th>
             <th>Trạng thái</th>
             <th>Hành động</th>
           </tr>
@@ -41,7 +58,6 @@
             :key="order.id"
             :class="{ highlight: order.status === 'PENDING' }"
           >
-            <td>{{ order.id }}</td>
             <td>{{ order.table ? order.table.name : 'Không có thông tin' }}</td>
             <td>{{ formatDateTime(order.created_at) }}</td>
             <td>{{ formatCurrency(order.totalAmount) }}</td>
@@ -52,30 +68,33 @@
               </span>
             </td>
             <td>
-              <select
-                v-model="order.status"
-                @change="updateOrderStatus(order)"
-                class="status-select"
-              >
-                <option value="PENDING">Đang chờ</option>
-                <option value="CONFIRMED">Đã xác nhận</option>
-                <option value="PREPARING">Đang chuẩn bị</option>
-                <option value="READY">Sẵn sàng phục vụ</option>
-                <option value="COMPLETED">Hoàn thành</option>
-                <option value="CANCELLED">Đã hủy</option>
-              </select>
-
-              <button
-                @click="showPaymentModal(order)"
-                class="btn btn-payment"
-                v-if="order.status !== 'COMPLETED' && order.status !== 'CANCELLED'"
-              >
-                Thanh toán
-              </button>
+              <div class="action-buttons">
+                <template v-if="order.status === 'PENDING'">
+                  <button
+                    @click="updateOrderStatus({ ...order, status: 'CONFIRMED' })"
+                    class="btn btn-confirm"
+                  >
+                    Xác nhận
+                  </button>
+                  <button
+                    @click="updateOrderStatus({ ...order, status: 'CANCELLED' })"
+                    class="btn btn-cancel"
+                  >
+                    Hủy
+                  </button>
+                </template>
+                <button
+                  v-if="order.status === 'READY'"
+                  @click="showPaymentModal(order)"
+                  class="btn btn-payment"
+                >
+                  Thanh toán
+                </button>
+              </div>
             </td>
           </tr>
           <tr v-if="filteredOrders.length === 0">
-            <td colspan="7" class="no-orders">Không có đơn hàng nào</td>
+            <td colspan="6" class="no-orders">Không có đơn hàng nào</td>
           </tr>
         </tbody>
       </table>
@@ -92,7 +111,6 @@
 </template>
 
 <script>
-import axios from 'axios'
 import OrderPaymentModal from './OrderPaymentModal.vue'
 
 export default {
@@ -100,15 +118,27 @@ export default {
   components: {
     OrderPaymentModal,
   },
+  props: {
+    orders: {
+      type: Array,
+      required: true,
+    },
+    loading: {
+      type: Boolean,
+      default: false,
+    },
+    error: {
+      type: String,
+      default: null,
+    },
+  },
   data() {
     return {
-      orders: [],
-      selectedOrder: null,
-      paymentOrder: null,
       statusFilter: '',
       searchQuery: '',
-      loading: false,
-      error: null,
+      paymentOrder: null,
+      sortKey: '',
+      sortOrder: 1,
     }
   },
   computed: {
@@ -117,11 +147,8 @@ export default {
         return []
       }
 
-      return this.orders.filter((order) => {
-        // Lọc theo trạng thái
+      let result = this.orders.filter((order) => {
         const statusMatch = !this.statusFilter || order.status === this.statusFilter
-
-        // Lọc theo từ khóa tìm kiếm
         const searchLower = this.searchQuery.toLowerCase()
         const searchMatch =
           !this.searchQuery ||
@@ -132,26 +159,45 @@ export default {
 
         return statusMatch && searchMatch
       })
+
+      // Sắp xếp
+      if (this.sortKey) {
+        result = result.slice().sort((a, b) => {
+          let aValue, bValue
+          if (this.sortKey === 'table') {
+            aValue = a.table?.name || ''
+            bValue = b.table?.name || ''
+          } else if (this.sortKey === 'created_at') {
+            aValue = a.created_at
+            bValue = b.created_at
+          } else {
+            aValue = a[this.sortKey]
+            bValue = b[this.sortKey]
+          }
+
+          if (aValue < bValue) return -1 * this.sortOrder
+          if (aValue > bValue) return 1 * this.sortOrder
+          return 0
+        })
+      }
+
+      return result
     },
   },
   methods: {
-    // Hàm định dạng thời gian
     formatDateTime(dateTimeString) {
       if (!dateTimeString) return 'N/A'
       try {
         const date = new Date(dateTimeString)
-        // Lấy giờ, phút, giây theo định dạng hh:mm:ss
         const hours = date.getHours().toString().padStart(2, '0')
         const minutes = date.getMinutes().toString().padStart(2, '0')
         const seconds = date.getSeconds().toString().padStart(2, '0')
-        // Định dạng: DD/MM/YYYY HH:MM:SS
         return `${hours}:${minutes}:${seconds}`
       } catch (e) {
         return 'N/A'
       }
     },
 
-    // Hàm định dạng tiền tệ
     formatCurrency(amount) {
       if (amount === undefined || amount === null) return '0 ₫'
       try {
@@ -164,7 +210,6 @@ export default {
       }
     },
 
-    // Hàm lấy tên trạng thái
     getStatusLabel(status) {
       const statusMap = {
         PENDING: 'Đang chờ',
@@ -177,7 +222,6 @@ export default {
       return statusMap[status] || status
     },
 
-    // Hàm lấy tên phương thức thanh toán
     getPaymentMethodLabel(method) {
       const methodMap = {
         CASH: 'Tiền mặt',
@@ -188,120 +232,38 @@ export default {
       return methodMap[method] || method
     },
 
-    // Hàm hiển thị modal thanh toán
     showPaymentModal(order) {
-      // Kiểm tra xem order có đầy đủ thông tin không
-      if (!order) return
-
-      // Tạo bản sao của đơn hàng để tránh thay đổi trực tiếp
-      const orderCopy = { ...order }
-
-      // Đảm bảo các trường cần thiết đều tồn tại
-      if (!orderCopy.items) orderCopy.items = []
-      if (!orderCopy.totalAmount) orderCopy.totalAmount = 0
-
-      this.paymentOrder = orderCopy
+      this.paymentOrder = order
     },
 
-    // Hàm cập nhật đơn hàng chung
-    async updateOrder(orderId, updateData) {
-      try {
-        this.loading = true
-        // Tìm đơn hàng hiện tại
-        const currentOrder = this.orders.find((o) => o.id === orderId)
-        if (!currentOrder) {
-          throw new Error('Không tìm thấy đơn hàng')
-        }
-
-        // Tạo OrderReq với dữ liệu hiện tại và cập nhật mới
-        const orderReq = {
-          orderId: orderId,
-          tableId: currentOrder.table?.id,
-          orderItems: currentOrder.items,
-          totalAmount: currentOrder.totalAmount,
-          status: updateData.status || currentOrder.status,
-          note: currentOrder.note,
-          paymentMethod: updateData.paymentMethod || currentOrder.paymentMethod,
-          isPaid: updateData.isPaid || currentOrder.isPaid,
-          customerName: currentOrder.customerName,
-          customerPhone: currentOrder.customerPhone,
-        }
-
-        // Gọi API để cập nhật đơn hàng
-        await axios.put(`http://localhost:8081/order/updateOrder`, orderReq)
-
-        // Cập nhật lại danh sách đơn hàng
-        const index = this.orders.findIndex((o) => o.id === orderId)
-        if (index !== -1) {
-          this.orders[index] = { ...this.orders[index], ...updateData }
-        }
-
-        // Đóng modal nếu đang mở
-        if (this.selectedOrder && this.selectedOrder.id === orderId) {
-          this.selectedOrder = { ...this.selectedOrder, ...updateData }
-        }
-
-        // Hiển thị thông báo thành công
-        console.log(`Đã cập nhật đơn hàng #${orderId}`)
-      } catch (error) {
-        this.error = 'Lỗi khi cập nhật đơn hàng'
-        console.error(error)
-      } finally {
-        this.loading = false
-      }
-    },
-
-    // Hàm xử lý thanh toán
     async processPayment(paymentData) {
+      console.log('Xử lý thanh toán đơn hàng:', this.paymentOrder.id)
       try {
-        await this.updateOrder(paymentData.orderId, {
-          status: 'COMPLETED',
-          paymentMethod: paymentData.paymentMethod,
-          isPaid: true,
+        await this.$emit('process-payment', {
+          orderId: this.paymentOrder.id,
+          ...paymentData,
         })
-
-        // Đóng modal thanh toán
         this.paymentOrder = null
-
-        // Reload danh sách đơn hàng
-        this.fetchOrders()
       } catch (error) {
-        this.error = 'Lỗi khi xử lý thanh toán'
-        console.error(error)
+        console.error('Lỗi khi xử lý thanh toán:', error)
       }
     },
 
-    // Hàm cập nhật trạng thái đơn hàng
     async updateOrderStatus(order) {
-      try {
-        await this.updateOrder(order.id, {
-          status: order.status,
-        })
-      } catch (error) {
-        this.error = 'Lỗi khi cập nhật trạng thái đơn hàng'
-        console.error(error)
-      }
+      await this.$emit('update-order-status', order)
     },
 
-    // Hàm tải danh sách đơn hàng
-    async fetchOrders() {
-      try {
-        this.loading = true
-        // Gọi API để lấy danh sách đơn hàng
-        const response = await axios.get('http://localhost:8081/order/getAll')
-
-        this.orders = response.data.result || []
-      } catch (error) {
-        this.error = 'Lỗi khi tải danh sách đơn hàng'
-        console.error(error)
-      } finally {
-        this.loading = false
+    sortBy(key) {
+      if (this.sortKey === key) {
+        this.sortOrder = -this.sortOrder
+      } else {
+        this.sortKey = key
+        this.sortOrder = 1
       }
     },
   },
   created() {
-    // Tải danh sách đơn hàng khi component được tạo
-    this.fetchOrders()
+    // Không cần gọi fetchOrders nữa vì sẽ được gọi từ component cha
   },
 }
 </script>
@@ -405,41 +367,27 @@ h1 {
   background-color: #f44336;
 }
 
-.status-select {
-  padding: 6px;
-  border-radius: 4px;
-  border: 1px solid #ddd;
-  margin-right: 8px;
+.action-buttons {
+  display: flex;
+  gap: 8px;
 }
 
-.btn {
-  padding: 6px 12px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.2s, transform 0.1s;
-}
-
-.btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+.btn-confirm {
+  background-color: #4caf50;
   color: white;
 }
 
-.btn:active {
-  transform: translateY(0);
+.btn-confirm:hover {
+  background-color: #388e3c;
 }
 
-.btn-view {
-  background-color: #2196f3;
+.btn-cancel {
+  background-color: #f44336;
   color: white;
-  margin-right: 5px;
 }
 
-.btn-view:hover {
-  background-color: #0d8aee;
-  color: white;
+.btn-cancel:hover {
+  background-color: #d32f2f;
 }
 
 .btn-payment {

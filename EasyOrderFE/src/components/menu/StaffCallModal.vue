@@ -28,8 +28,7 @@
 </template>
 
 <script setup>
-import { ref, nextTick, onMounted, onUnmounted } from 'vue'
-import { connectWebSocket, sendMessage, disconnectWebSocket } from '@/utils/websocket'
+import { ref, nextTick } from 'vue'
 
 const isOpen = ref(false)
 const staffMessage = ref('')
@@ -37,45 +36,25 @@ const textareaRef = ref(null)
 const tableId = ref(null)
 const tableInfo = ref({})
 
-onUnmounted(() => {
-  disconnectWebSocket()
-})
+const emit = defineEmits(['send-staff-request'])
 
 const showModal = () => {
-  connectWebSocket(
-    () => {
-      console.log('WebSocket connected successfully')
-      isOpen.value = true
-      nextTick(() => {
-        textareaRef.value?.focus()
-      })
-    },
-    (error) => {
-      console.error('WebSocket connection error:', error)
-    }
-  )
+  isOpen.value = true
+  nextTick(() => {
+    textareaRef.value?.focus()
+  })
 }
 
 const closeModal = () => {
   isOpen.value = false
-  disconnectWebSocket()
+  staffMessage.value = ''
 }
 
 const sendStaffRequest = () => {
   if (staffMessage.value.trim()) {
-    const message = {
-      tableId: tableInfo.value.name,
-
-      message: staffMessage.value,
-      type: 'STAFF_CALL',
-    }
-
-    if (sendMessage('/app/call-staff', message)) {
-      closeModal()
-      staffMessage.value = ''
-    } else {
-      alert('Không thể gửi yêu cầu. Vui lòng thử lại sau.')
-    }
+    console.log('Emit send-staff-request với:', staffMessage.value)
+    emit('send-staff-request', staffMessage.value)
+    closeModal()
   } else {
     alert('Vui lòng nhập nội dung yêu cầu')
   }
@@ -86,6 +65,7 @@ defineExpose({
   closeModal,
   tableId,
   tableInfo,
+  sendStaffRequest,
 })
 </script>
 

@@ -139,7 +139,7 @@ export default {
     // Xác nhận thanh toán
     confirmPayment() {
       if (!this.selectedPaymentMethod) return
-
+      console.log('Thanh toán đơn hàng:', this.order.id)
       this.$emit('confirm-payment', {
         orderId: this.order.id,
         paymentMethod: this.selectedPaymentMethod,

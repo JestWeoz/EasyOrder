@@ -19,10 +19,20 @@
           :tables="tables"
           :showTableModal="showTableModal"
           :selectedTable="selectedTable || {}"
+          :orders="orders"
+          :loading="loading"
+          :error="error"
+          :formatDateTime="formatDateTime"
+          :formatCurrency="formatCurrency"
+          :getStatusLabel="getStatusLabel"
+          :getPaymentMethodLabel="getPaymentMethodLabel"
           @table-click="handleTableClick"
           @update-table-status="updateTableStatus"
           @clear-messages="clearMessages"
           @update:showTableModal="showTableModal = $event"
+          @show-payment-modal="showPaymentModal"
+          @update-order-status="updateOrderStatus"
+          @process-payment="processPayment"
         />
       </router-view>
     </div>
@@ -55,6 +65,13 @@ export default {
       tables: [],
       showTableModal: false,
       selectedTable: null,
+      orders: [],
+      selectedOrder: null,
+      paymentOrder: null,
+      statusFilter: '',
+      searchQuery: '',
+      loading: false,
+      error: null,
     }
   },
   computed: {
@@ -63,12 +80,14 @@ export default {
     },
   },
   async created() {
+    this.introspectToken()
     // Cập nhật component hiện tại dựa trên route
     this.updateCurrentComponent()
+    this.fetchOrders()
 
     // Lấy thông tin người dùng từ token
     this.getUserInfo()
-
+    
     // Cập nhật title
     document.title = this.pageTitle
 
@@ -193,8 +212,20 @@ export default {
       return new Date(timestamp).toLocaleString('vi-VN')
     },
     handleNewMessage(response) {
+      console.log('Nhận message WebSocket:', response)
+
+      if (response.result.type === 'NEW_ORDER') {
+        this.fetchOrders()
+        this.getTables()
+      }
+
       const message = response.result
-      console.log('Nhận tin nhắn mới:', message)
+      if (!message) {
+        console.warn('Message không có dữ liệu result:', response)
+        return
+      }
+
+      console.log('Xử lý tin nhắn mới:', message)
       const newMessage = {
         id: Date.now(),
         tableId: message.tableId,
@@ -211,6 +242,23 @@ export default {
     handleTableClick(table) {
       this.selectedTable = { ...table }
       this.showTableModal = true
+    },
+    introspectToken() {
+      const token = localStorage.getItem('token')
+      const formData = new FormData()
+      formData.append('token', token)
+      axios
+        .post('http://localhost:8081/auth/introspect', formData)
+        .then((response) => {
+          if (!response.data.result.valid) {
+            localStorage.removeItem('token')
+            this.$router.push('/login')
+          }
+        })
+        .catch((error) => {
+          console.error('Lỗi khi introspect token:', error)
+          this.$router.push('/login')
+        })
     },
     async getTables() {
       try {
@@ -260,6 +308,132 @@ export default {
     clearMessages() {
       this.messages = []
       this.saveMessagesToLocalStorage()
+    },
+    formatDateTime(dateTimeString) {
+      if (!dateTimeString) return 'N/A'
+      try {
+        const date = new Date(dateTimeString)
+        const hours = date.getHours().toString().padStart(2, '0')
+        const minutes = date.getMinutes().toString().padStart(2, '0')
+        const seconds = date.getSeconds().toString().padStart(2, '0')
+        return `${hours}:${minutes}:${seconds}`
+      } catch (e) {
+        return 'N/A'
+      }
+    },
+    formatCurrency(amount) {
+      if (amount === undefined || amount === null) return '0 ₫'
+      try {
+        return new Intl.NumberFormat('vi-VN', {
+          style: 'currency',
+          currency: 'VND',
+        }).format(amount)
+      } catch (e) {
+        return '0 ₫'
+      }
+    },
+    getStatusLabel(status) {
+      const statusMap = {
+        PENDING: 'Đang chờ',
+        CONFIRMED: 'Đã xác nhận',
+        PREPARING: 'Đang chuẩn bị',
+        READY: 'Sẵn sàng phục vụ',
+        COMPLETED: 'Hoàn thành',
+        CANCELLED: 'Đã hủy',
+      }
+      return statusMap[status] || status
+    },
+    getPaymentMethodLabel(method) {
+      const methodMap = {
+        CASH: 'Tiền mặt',
+        CARD: 'Thẻ',
+        TRANSFER: 'Chuyển khoản',
+        OTHER: 'Khác',
+      }
+      return methodMap[method] || method
+    },
+    showPaymentModal(order) {
+      if (!order) return
+      const orderCopy = { ...order }
+      if (!orderCopy.items) orderCopy.items = []
+      if (!orderCopy.totalAmount) orderCopy.totalAmount = 0
+      this.paymentOrder = orderCopy
+    },
+    async updateOrder(orderId, updateData) {
+      try {
+        this.loading = true
+        const currentOrder = this.orders.find((o) => o.id === orderId)
+        if (!currentOrder) {
+          throw new Error('Không tìm thấy đơn hàng')
+        }
+
+        const orderReq = {
+          orderId: orderId,
+          tableId: currentOrder.table?.id,
+          orderItems: currentOrder.items,
+          totalAmount: currentOrder.totalAmount,
+          status: updateData.status || currentOrder.status,
+          note: currentOrder.note,
+          paymentMethod: updateData.paymentMethod || currentOrder.paymentMethod,
+          isPaid: updateData.isPaid || currentOrder.isPaid,
+          customerName: currentOrder.customerName,
+          customerPhone: currentOrder.customerPhone,
+        }
+
+        await axios.put(`http://localhost:8081/order/updateOrder`, orderReq)
+
+        const index = this.orders.findIndex((o) => o.id === orderId)
+        if (index !== -1) {
+          this.orders[index] = { ...this.orders[index], ...updateData }
+        }
+
+        if (this.selectedOrder && this.selectedOrder.id === orderId) {
+          this.selectedOrder = { ...this.selectedOrder, ...updateData }
+        }
+        this.getTables()
+      } catch (error) {
+        this.error = 'Lỗi khi cập nhật đơn hàng'
+        console.error(error)
+      } finally {
+        this.loading = false
+      }
+    },
+    async processPayment(paymentData) {
+      try {
+        await this.updateOrder(paymentData.orderId, {
+          status: 'COMPLETED',
+          paymentMethod: paymentData.paymentMethod,
+          isPaid: true,
+        })
+
+        this.paymentOrder = null
+        this.fetchOrders()
+      } catch (error) {
+        this.error = 'Lỗi khi xử lý thanh toán'
+        console.error(error)
+      }
+    },
+    async updateOrderStatus(order) {
+      try {
+        await this.updateOrder(order.id, {
+          status: order.status,
+        })
+      } catch (error) {
+        this.error = 'Lỗi khi cập nhật trạng thái đơn hàng'
+        console.error(error)
+      }
+    },
+    async fetchOrders() {
+      try {
+        this.loading = true
+        const response = await axios.get('http://localhost:8081/order/getAll')
+        this.orders = response.data.result || []
+      } catch (error) {
+        console.error('Lỗi khi fetch orders:', error)
+        this.error = 'Lỗi khi tải danh sách đơn hàng'
+      } finally {
+        this.loading = false
+      }
     },
   },
 }

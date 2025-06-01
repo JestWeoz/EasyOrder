@@ -137,7 +137,6 @@
               :options="{ width: 300 }"
               ref="qrCode"
             />
-            
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-success" @click="downloadQR">Tải về</button>
@@ -189,7 +188,6 @@ export default {
         this.tables = response.data.result.map((table) => ({
           ...table,
         }))
-        console.log(this.tables)
       } catch (error) {
         console.error('Lỗi khi lấy danh sách bàn:', error)
       }
@@ -198,13 +196,33 @@ export default {
       this.selectedTable = tableId
       this.qrModal.show()
     },
-    downloadQR() {
-      const qrCodeElement = this.$refs.qrCode.$el
-      const canvas = qrCodeElement.querySelector('canvas')
-      const link = document.createElement('a')
-      link.download = `QR-Ban-${this.selectedTable}.png`
-      link.href = canvas.toDataURL('image/png')
-      link.click()
+    async downloadQR() {
+      try {
+        // Đợi Vue render hoàn tất
+        await this.$nextTick()
+        // Đợi thêm một chút để đảm bảo QR code được render
+        await new Promise((resolve) => setTimeout(resolve, 500))
+
+        const qrCodeElement = this.$refs.qrCode?.$el
+        if (!qrCodeElement) {
+          throw new Error('Không tìm thấy phần tử QR code')
+        }
+
+        // Thử tìm canvas trong toàn bộ modal
+        const canvas =
+          document.querySelector('#qrModal canvas') || qrCodeElement.querySelector('canvas')
+        if (!canvas) {
+          throw new Error('Không tìm thấy canvas QR code')
+        }
+
+        const link = document.createElement('a')
+        link.download = `QR-Ban-${this.selectedTable}.png`
+        link.href = canvas.toDataURL('image/png')
+        link.click()
+      } catch (error) {
+        console.error('Lỗi khi tải xuống QR code:', error)
+        alert('Có lỗi xảy ra khi tải xuống QR code. Vui lòng thử lại!')
+      }
     },
     showAddTableModal() {
       this.newTable = {

@@ -40,7 +40,7 @@ export default {
       return this.route.name
     },
     pageTitle() {
-      return  'Trang quản trị'
+      return 'Trang quản trị'
     },
   },
   watch: {
@@ -52,18 +52,37 @@ export default {
     },
   },
   created() {
+    this.introspectToken()
     this.getUserInfo()
   },
   mounted() {
     this.initializeScripts()
     document.title = this.pageTitle
   },
+
   methods: {
     initializeScripts() {
       // Khởi tạo Perfect Scrollbar
       if (typeof PerfectScrollbar !== 'undefined') {
         new PerfectScrollbar('.sidebar-wrapper')
       }
+    },
+    introspectToken() {
+      const token = localStorage.getItem('token')
+      const formData = new FormData()
+      formData.append('token', token)
+      axios
+        .post('http://localhost:8081/auth/introspect', formData)
+        .then((response) => {
+          if (!response.data.result.valid) {
+            localStorage.removeItem('token')
+            this.$router.push('/login')
+          }
+        })
+        .catch((error) => {
+          console.error('Lỗi khi introspect token:', error)
+          this.$router.push('/login')
+        })
     },
     getUserInfo() {
       const token = localStorage.getItem('token')
@@ -74,7 +93,6 @@ export default {
 
       try {
         const decodedToken = jwtDecode(token)
-        console.log('Thông tin từ token:', decodedToken)
 
         axios
           .get('http://localhost:8081/user/getInfo', {
@@ -86,7 +104,6 @@ export default {
             },
           })
           .then((response) => {
-            console.log('Thông tin người dùng:', response.data)
             const userData = response.data.result
             this.userInfo = {
               name:

@@ -152,7 +152,6 @@ export default {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
         })
-        console.log(res.data)
         if (res.data && res.data.result) {
           this.staffs = res.data.result
         }
@@ -185,24 +184,19 @@ export default {
         id: staff.id,
       }
       this.editModal.show()
-      console.log(this.editStaff)
     },
     async handleUpdateStaff() {
       try {
         const updateData = {
           ...this.editStaff,
-          password: this.editStaff.password || undefined,
+          password: this.editStaff.password || null,
+          roles: this.editStaff.roles || null,
         }
-
-        const res = await axios.put(
-          `http://localhost:8081/user/update`,
-          updateData,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem('token')}`,
-            },
-          }
-        )
+        const res = await axios.put(`http://localhost:8081/user/update`, updateData, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        })
 
         if (res.data && res.data.result) {
           this.editModal.hide()

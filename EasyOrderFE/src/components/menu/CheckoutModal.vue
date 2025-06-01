@@ -20,48 +20,26 @@
 </template>
 
 <script setup>
-import { ref, onUnmounted } from 'vue'
-import { connectWebSocket, sendMessage, disconnectWebSocket } from '@/utils/websocket'
+import { ref } from 'vue'
 
 const isOpen = ref(false)
 const tableId = ref(null)
 const tableInfo = ref({})
 
-onUnmounted(() => {
-  disconnectWebSocket()
-})
-
 const showModal = () => {
-  connectWebSocket(
-    () => {
-      console.log('WebSocket connected successfully')
-      isOpen.value = true
-    },
-    (error) => {
-      console.error('WebSocket connection error:', error)
-    }
-  )
+  isOpen.value = true
 }
 
 const closeModal = () => {
   isOpen.value = false
-  disconnectWebSocket()
 }
 
 const confirmCheckout = () => {
-  const message = {
-    tableId: tableInfo.value.name,
-    message: 'Gọi thanh toán',
-    type: 'CHECKOUT_REQUEST',
-  }
-  console.log(message)
-
-  if (sendMessage('/app/call-staff', message)) {
-    closeModal()
-  } else {
-    alert('Không thể gửi yêu cầu thanh toán. Vui lòng thử lại sau.')
-  }
+  emit('send-checkout-request')
+  closeModal()
 }
+
+const emit = defineEmits(['send-checkout-request'])
 
 defineExpose({
   showModal,
