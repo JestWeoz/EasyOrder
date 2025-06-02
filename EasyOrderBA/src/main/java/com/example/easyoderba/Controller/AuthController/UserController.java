@@ -40,11 +40,17 @@ public class UserController {
                 .result(userService.getAllUsers())
                 .build();
     }
-    @PostMapping("/update")
+    @GetMapping("/getInfo")
+    public ApiResponse<UserResponse> getUserInfoByUserName(@RequestParam String userName) {
+        return ApiResponse.<UserResponse>builder()
+                .result(userService.getUserByUserName(userName))
+                .build();
+    }
+
+    @PutMapping("/update")
     public ApiResponse<String> updateUser(@RequestBody  UpdateUserReq updateUserReq) {
         return ApiResponse.<String>builder()
                 .result(userService.updateUser(updateUserReq))
                 .build();
     }
-
 }

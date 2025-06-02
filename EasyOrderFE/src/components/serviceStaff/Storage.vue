@@ -57,10 +57,15 @@
                         <td>{{ formatPrice(item.price) }}đ</td>
                         <td>{{ item.description }}</td>
                         <td>
-                          <span :class="getStatusClass(item.status)">{{ item.status }}</span>
+                          <span :class="getStatusClass(item.status)">{{
+                            getStatusText(item.status)
+                          }}</span>
                         </td>
                         <td>
-                          <button class="btn btn-sm btn-warning" @click="openEditModal(item)">
+                          <button
+                            class="btn btn-sm btn-warning"
+                            @click="openEditModal(item, category)"
+                          >
                             <i class="bi bi-pencil"></i>
                           </button>
                         </td>
@@ -93,8 +98,8 @@
             <div class="mb-3">
               <label class="form-label">Trạng thái</label>
               <select class="form-select" v-model="formData.status" required>
-                <option value="Còn hàng">Còn hàng</option>
-                <option value="Hết hàng">Hết hàng</option>
+                <option value="1">Còn hàng</option>
+                <option value="0">Hết hàng</option>
               </select>
             </div>
           </form>
@@ -106,6 +111,10 @@
       </div>
     </div>
   </div>
+
+  <div v-if="notify.show" :class="['custom-toast', notify.type]">
+    {{ notify.message }}
+  </div>
 </template>
 
 <script>
@@ -115,6 +124,68 @@ import axios from 'axios'
 
 export default {
   name: 'Storage',
+  props: {
+    messages: {
+      type: Array,
+      default: () => [],
+    },
+    tables: {
+      type: Array,
+      default: () => [],
+    },
+    showTableModal: {
+      type: Boolean,
+      default: false,
+    },
+    selectedTable: {
+      type: Object,
+      default: null,
+    },
+    orders: {
+      type: Array,
+      default: () => [],
+    },
+    loading: {
+      type: Boolean,
+      default: false,
+    },
+    error: {
+      type: String,
+      default: '',
+    },
+    formatDateTime: {
+      type: Function,
+      default: null,
+    },
+    formatCurrency: {
+      type: Function,
+      default: null,
+    },
+    getStatusLabel: {
+      type: Function,
+      default: null,
+    },
+    getPaymentMethodLabel: {
+      type: Function,
+      default: null,
+    },
+    formatTime: {
+      type: Function,
+      default: null,
+    },
+    formatOrderStatus: {
+      type: Function,
+      default: null,
+    },
+  },
+  emits: [
+    'tableClick',
+    'updateTableStatus',
+    'clearMessages',
+    'showPaymentModal',
+    'updateOrderStatus',
+    'processPayment',
+  ],
   setup() {
     const categories = ref([])
     const loading = ref(false)
@@ -124,9 +195,14 @@ export default {
     const formData = ref({
       id: null,
       name: '',
-      status: 'Còn hàng',
+      status: '0',
     })
     let productModal = null
+    const notify = ref({
+      show: false,
+      message: '',
+      type: 'success',
+    })
 
     onMounted(() => {
       // Khởi tạo modal
@@ -139,13 +215,12 @@ export default {
       try {
         loading.value = true
         const response = await axios.get('http://localhost:8081/menu')
+        console.log('response', response.data)
         if (response.data.code === 1000) {
-          // Thêm trạng thái mặc định cho các món ăn nếu chưa có
           categories.value = response.data.result.categories.map((category) => ({
             ...category,
             products: category.products.map((product) => ({
               ...product,
-              status: product.status || 'Còn hàng',
             })),
           }))
         } else {
@@ -184,48 +259,98 @@ export default {
       return new Intl.NumberFormat('vi-VN').format(price)
     }
 
-    const openEditModal = (item) => {
+    const openEditModal = (item, category) => {
       isEditing.value = true
       formData.value = {
         id: item.id,
         name: item.name,
-        status: item.status || 'Còn hàng',
+        status: item.status,
+        price: item.price,
+        description: item.description,
+        categoryId: category.id,
       }
       productModal.show()
+      setTimeout(() => {
+        const firstInput = document.querySelector('#productModal input, #productModal select')
+        if (firstInput) firstInput.focus()
+      }, 300)
+    }
+
+    const showNotify = (message, type = 'success') => {
+      notify.value = { show: true, message, type }
+      setTimeout(() => {
+        notify.value.show = false
+      }, 2000)
     }
 
     const handleSubmit = async () => {
       try {
-        // Tìm và cập nhật trạng thái của món ăn
-        for (const category of categories.value) {
-          const productIndex = category.products.findIndex((p) => p.id === formData.value.id)
-          if (productIndex !== -1) {
-            category.products[productIndex].status = formData.value.status
-            break
-          }
+        // Kiểm tra dữ liệu trước khi gửi
+        if (!formData.value.id || !formData.value.categoryId) {
+          showNotify('Thiếu thông tin cần thiết. Vui lòng thử lại.', 'error')
+          return
         }
 
-        // TODO: Gọi API để cập nhật trạng thái trên server
-        // const response = await axios.put(`http://localhost:8081/menu/product/status`, {
-        //   id: formData.value.id,
-        //   status: formData.value.status
-        // })
+        const formDataToSend = new FormData()
+        formDataToSend.append('id', formData.value.id)
+        formDataToSend.append('status', formData.value.status)
+        formDataToSend.append('name', formData.value.name)
+        formDataToSend.append('price', formData.value.price)
+        formDataToSend.append('description', formData.value.description)
+        formDataToSend.append('categoryId', formData.value.categoryId.toString())
 
-        productModal.hide()
+        console.log('formDataToSend', {
+          id: formDataToSend.get('id'),
+          status: formDataToSend.get('status'),
+          name: formDataToSend.get('name'),
+          price: formDataToSend.get('price'),
+          description: formDataToSend.get('description'),
+          categoryId: formDataToSend.get('categoryId'),
+        })
+
+        const response = await axios.put('http://localhost:8081/menu/product', formDataToSend, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        })
+        console.log('response', response.data)
+        if (response.data.code === 1000 && response.data.result === 'Success') {
+          await fetchMenuItems()
+          productModal.hide()
+          showNotify('Cập nhật trạng thái thành công!', 'success')
+        } else {
+          showNotify(response.data.result || 'Cập nhật thất bại', 'error')
+          throw new Error(response.data.result || 'Cập nhật thất bại')
+        }
       } catch (error) {
         console.error('Lỗi khi cập nhật trạng thái:', error)
-        alert('Không thể cập nhật trạng thái. Vui lòng thử lại sau.')
+        showNotify(
+          error.response?.data?.message || 'Không thể cập nhật trạng thái. Vui lòng thử lại sau.',
+          'error'
+        )
       }
     }
 
     const getStatusClass = (status) => {
-      switch (status) {
-        case 'Còn hàng':
+      switch (Number(status)) {
+        case 1:
           return 'badge bg-success'
-        case 'Hết hàng':
+        case 0:
           return 'badge bg-danger'
         default:
           return 'badge bg-secondary'
+      }
+    }
+
+    const getStatusText = (status) => {
+      switch (Number(status)) {
+        case 1:
+          return 'Còn hàng'
+        case 0:
+          return 'Hết hàng'
+        default:
+          return 'Không xác định'
       }
     }
 
@@ -242,7 +367,10 @@ export default {
       handleSearch,
       clearSearch,
       getStatusClass,
+      getStatusText,
       formatPrice,
+      notify,
+      showNotify,
     }
   },
 }
@@ -271,5 +399,31 @@ export default {
 .input-group .btn-outline-secondary:hover {
   background-color: #f8f9fa;
   color: #212529;
+}
+
+.custom-toast {
+  position: fixed;
+  top: 32px;
+  right: 32px;
+  min-width: 240px;
+  background: #fff;
+  color: #333;
+  border-radius: 8px;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.15);
+  padding: 16px 24px;
+  z-index: 9999;
+  text-align: left;
+  font-size: 16px;
+  font-weight: 500;
+  opacity: 1;
+  transition: opacity 0.5s;
+  border-left: 6px solid #28a745;
+}
+.custom-toast.success {
+  border-left-color: #28a745;
+}
+.custom-toast.error {
+  border-left-color: #dc3545;
+  color: #dc3545;
 }
 </style> 

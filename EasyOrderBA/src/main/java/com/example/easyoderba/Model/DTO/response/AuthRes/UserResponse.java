@@ -15,6 +15,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Builder
 public class UserResponse implements Serializable {
+    Integer id;
     String username;
     String firstName;
     String lastName;

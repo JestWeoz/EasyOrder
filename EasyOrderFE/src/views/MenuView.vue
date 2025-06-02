@@ -128,6 +128,7 @@ export default {
     const getMenu = async () => {
       try {
         const response = await axios.get('http://localhost:8081/menu')
+
         categories.value = response.data.result.categories
         tabs.value = [{ id: 'all', name: 'Tất cả' }, ...response.data.result.categories]
       } catch (error) {
@@ -308,10 +309,17 @@ export default {
     }
 
     const filteredCategories = computed(() => {
+      const filterProducts = (category) => ({
+        ...category,
+        products: (category.products || []).filter((product) => product.status === 1),
+      })
+
       if (activeTab.value === 'all') {
-        return categories.value
+        return categories.value.map(filterProducts)
       }
-      return categories.value.filter((category) => category.id === activeTab.value)
+      return categories.value
+        .filter((category) => category.id === activeTab.value)
+        .map(filterProducts)
     })
 
     const handleScroll = () => {

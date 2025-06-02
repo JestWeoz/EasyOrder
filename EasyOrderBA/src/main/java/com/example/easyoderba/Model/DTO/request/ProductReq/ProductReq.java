@@ -14,6 +14,7 @@ import java.util.List;
 public class ProductReq {
     Long id;
     String name;
+    int status;
     String description;
     Long price;
     Long categoryId;

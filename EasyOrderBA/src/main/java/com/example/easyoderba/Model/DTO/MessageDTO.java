@@ -12,4 +12,5 @@ import lombok.experimental.FieldDefaults;
 public class MessageDTO {
     String tableId;
     String message;
+    String type;
 }

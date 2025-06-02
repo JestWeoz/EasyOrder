@@ -8,6 +8,7 @@ import com.example.easyoderba.Model.DTO.response.ProductRes.TableRes;
 import com.example.easyoderba.Model.Entity.ProductEntity.TableEntity;
 import com.example.easyoderba.Repository.ProductRespository.TableRepository;
 import com.example.easyoderba.constant.TableCreateQR;
+import com.nimbusds.jose.JOSEException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -37,9 +38,12 @@ public class TableService {
         tableRepository.save(tableEntity);
         return "oke";
     }
+    public TableRes getTableById(Long id) throws AppException {
+        tableRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.TABLE_NOT_FOUND));
+        return modelMapper.map(tableRepository.findById(id), TableRes.class);
+    }
 
     public List<TableRes> getTables() {
-
         List<TableRes> tableResList = new ArrayList<>();
         for (TableEntity tableEntity : tableRepository.findAll()) {
             TableRes tableRes = new TableRes();
@@ -49,7 +53,9 @@ public class TableService {
     }
     public void updateTable(TableReq tableReq) {
         TableEntity tableEntity = tableRepository.findById(tableReq.getId()).orElseThrow(() -> new AppException(ErrorCode.TABLE_NOT_FOUND));
+        String url = tableEntity.getUrl();
         tableEntity = modelMapper.map(tableReq, TableEntity.class);
+        tableEntity.setUrl(url);
         tableRepository.save(tableEntity);
     }
     public void deleteTable(long id) {

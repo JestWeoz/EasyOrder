@@ -27,10 +27,16 @@ public class TableController {
                 .result(tableService.addTable(tableReq))
                 .build();
     }
-    @GetMapping
+    @GetMapping("/getAll")
     public ApiResponse<List<TableRes>> getTables() {
         return ApiResponse.<List<TableRes>>builder()
                 .result(tableService.getTables())
+                .build();
+    }
+    @GetMapping
+    public ApiResponse<TableRes> getTable(@RequestParam long tableId) {
+        return ApiResponse.<TableRes>builder()
+                .result(tableService.getTableById(tableId))
                 .build();
     }
     @PutMapping

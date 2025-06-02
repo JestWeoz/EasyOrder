@@ -9,6 +9,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 
 @Data
@@ -18,13 +19,11 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class OrderRes {
     Long id;
-    TableRes table;
     List<OrderItemRes> orderItems;
+    TableRes table;
     BigDecimal totalAmount;
     String status;
     String note;
-    String paymentMethod;
     Boolean isPaid;
-    String customerName;
-    String customerPhone;
+    String created_at;
 }

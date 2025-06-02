@@ -1,21 +1,7 @@
-server:
-  port: 8081
-spring:
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/easyorder
-    username: root
-    password: 123456
-  jpa:
-    hibernate:
-      ddl-auto:
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MySQL8Dialect
-    show-sql: true
+cloudinary:
+  cloud-name: dohgdvnuy
+  api-key: 629845858442262
+  api-secret: gB6Ld8Agabga0TuyOH1RD9_2BG0
+jwt:
+  signerKey: "PeRugtunxGVHczXpnSrTz4itDuYFmiDNBxv1Ex33HU/iXCtVDm/5HJqfh8n3c3ya"
 
-springdoc:
-  api-docs:
-    path: /api-docs
-  swagger-ui:
-    path: /api-docs

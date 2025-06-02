@@ -1,5 +1,6 @@
 package com.example.easyoderba.Model.Entity.ProductEntity;
 
+import com.example.easyoderba.Model.Entity.AuthEntity.User;
 import com.example.easyoderba.Model.Entity.BaseEntity;
 import com.example.easyoderba.Utils.Enums.OrderStatus;
 import com.example.easyoderba.Utils.Enums.PaymentMethod;
@@ -36,10 +37,6 @@ public class OrderEntity extends BaseEntity {
     @Column(name = "note")
     String note;
 
-    @Column(name = "payment_method")
-    @Enumerated(EnumType.STRING)
-    PaymentMethod paymentMethod;
-
     @Column(name = "is_paid")
     Boolean isPaid;
 
@@ -48,5 +45,9 @@ public class OrderEntity extends BaseEntity {
 
     @Column(name = "customer_phone")
     String customerPhone;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "invoice_id")
+    InvoiceEntity invoice;
 }
 

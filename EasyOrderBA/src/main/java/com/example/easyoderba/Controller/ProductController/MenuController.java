@@ -45,8 +45,8 @@ public class MenuController {
                 .build();
     }
     @PostMapping("/product")
-    public ApiResponse<?> addProduct(ProductReq productReq) throws IOException {
-        return ApiResponse.builder()
+    public ApiResponse<String> addProduct(ProductReq productReq) throws IOException {
+        return ApiResponse.<String>builder()
                 .result(productService.addProduct(productReq))
                 .build();
     }

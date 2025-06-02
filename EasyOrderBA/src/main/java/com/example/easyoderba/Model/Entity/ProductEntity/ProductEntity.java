@@ -21,6 +21,7 @@ public class ProductEntity extends BaseEntity {
     String name;
     Long price;
     String description;
+    int status;
 
     @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST}
             , orphanRemoval = true)

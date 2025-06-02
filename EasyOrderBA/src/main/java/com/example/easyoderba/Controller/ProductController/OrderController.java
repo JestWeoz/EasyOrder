@@ -6,6 +6,7 @@ import com.example.easyoderba.Model.DTO.response.AuthRes.ApiResponse;
 import com.example.easyoderba.Model.DTO.response.ProductRes.OrderRes;
 import com.example.easyoderba.Model.DTO.response.ProductRes.TableRes;
 import com.example.easyoderba.Service.ProductService.OrderService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -30,9 +31,19 @@ public class OrderController {
         orderService.deleteOrder(id);
     }
     @GetMapping
-    public ApiResponse<List<OrderRes>> getOrder(@RequestParam Long tableId) {
+    public ApiResponse<List<OrderRes>> getOrderByTable(@RequestParam Long tableId) {
         return ApiResponse.<List<OrderRes>>builder()
                 .result(orderService.getOrderByTableId(tableId))
+                .build();
+    }
+    @PutMapping("/updateOrder")
+    public void updateOrderStatus(@RequestBody OrderReq orderReq) {
+        orderService.updateOrder(orderReq);
+    }
+    @GetMapping("/getAll")
+    public ApiResponse<List<OrderRes>> getAllOrder() {
+        return ApiResponse.<List<OrderRes>>builder()
+                .result(orderService.getAllOrders())
                 .build();
     }
 

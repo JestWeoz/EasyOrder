@@ -52,6 +52,7 @@ public class MenuService {
                                 .price(product.getPrice())
                                 .images(imageResponses)
                                 .name(product.getName())
+                                .status(product.getStatus())
                         .build());
             }
             

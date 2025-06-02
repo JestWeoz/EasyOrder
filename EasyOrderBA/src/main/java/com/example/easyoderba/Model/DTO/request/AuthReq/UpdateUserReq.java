@@ -13,6 +13,7 @@ import java.util.Set;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UpdateUserReq {
+    Integer id;
     @Size(min = 4, message = "USERNAME_INVALID")
     String username;
 

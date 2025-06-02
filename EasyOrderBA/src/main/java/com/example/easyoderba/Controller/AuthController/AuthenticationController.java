@@ -25,7 +25,7 @@ public class AuthenticationController {
 
 
 
-    @GetMapping("/token")
+    @PostMapping("/token")
     public ApiResponse<AuthenticationResponse> login(@RequestBody LoginReq loginReq) {
         return ApiResponse.<AuthenticationResponse>builder()
                 .result(authenticationService.Login(loginReq))
@@ -33,7 +33,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/introspect")
-    public ApiResponse<IntrospectResponse> introspect(@RequestBody IntrospectReq introspectReq) throws ParseException, JOSEException {
+    public ApiResponse<IntrospectResponse> introspect(IntrospectReq introspectReq) throws ParseException, JOSEException {
          var result = authenticationService.Introspect(introspectReq);
          return ApiResponse.<IntrospectResponse>builder()
                  .result(result)

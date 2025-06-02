@@ -16,15 +16,12 @@ import java.util.List;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class OrderReq {
+    Long orderId;
     Long tableId;
     List<OrderItemReq> orderItems;
     BigDecimal totalAmount;
-
-    String status;
+    OrderStatus status;
     String note;
-
-    String paymentMethod;
     Boolean isPaid;
-    String customerName;
-    String customerPhone;
+
 }

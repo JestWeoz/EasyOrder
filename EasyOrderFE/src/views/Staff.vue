@@ -26,6 +26,8 @@
           :formatCurrency="formatCurrency"
           :getStatusLabel="getStatusLabel"
           :getPaymentMethodLabel="getPaymentMethodLabel"
+          :formatTime="formatTime"
+          :formatOrderStatus="formatOrderStatus"
           @table-click="handleTableClick"
           @update-table-status="updateTableStatus"
           @clear-messages="clearMessages"
@@ -87,7 +89,7 @@ export default {
 
     // Lấy thông tin người dùng từ token
     this.getUserInfo()
-    
+
     // Cập nhật title
     document.title = this.pageTitle
 
@@ -352,6 +354,36 @@ export default {
       }
       return methodMap[method] || method
     },
+    formatOrderStatus(status) {
+      switch (status) {
+        case 'PENDING':
+          return 'Chờ xác nhận'
+        case 'CONFIRMED':
+          return 'Chờ chế biến'
+        case 'PREPARING':
+          return 'Đang chế biến'
+        case 'READY':
+          return 'Sẵn sàng phục vụ'
+        case 'COMPLETED':
+          return 'Hoàn thành'
+        case 'CANCELLED':
+          return 'Đã hủy'
+        default:
+          return status
+      }
+    },
+    formatTime(date) {
+      if (!date) return 'N/A'
+      try {
+        const dateObj = new Date(date)
+        return dateObj.toLocaleTimeString('vi-VN', {
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+      } catch (e) {
+        return 'N/A'
+      }
+    },
     showPaymentModal(order) {
       if (!order) return
       const orderCopy = { ...order }
@@ -418,6 +450,7 @@ export default {
         await this.updateOrder(order.id, {
           status: order.status,
         })
+        this.fetchOrders()
       } catch (error) {
         this.error = 'Lỗi khi cập nhật trạng thái đơn hàng'
         console.error(error)
@@ -433,6 +466,46 @@ export default {
         this.error = 'Lỗi khi tải danh sách đơn hàng'
       } finally {
         this.loading = false
+      }
+    },
+    async startProcessing(orderId) {
+      try {
+        // Tìm đơn hàng cần xử lý
+        const orderIndex = this.orders.findIndex((order) => order.id === orderId)
+        if (orderIndex >= 0) {
+          const order = { ...this.orders[orderIndex] }
+
+          // Gọi API để cập nhật trạng thái
+          await this.updateOrder(orderId, {
+            status: 'PREPARING',
+          })
+
+          // Cập nhật UI
+          order.status = 'PREPARING'
+          this.orders[orderIndex] = order
+        }
+      } catch (error) {
+        this.error = 'Lỗi khi bắt đầu chế biến đơn hàng'
+        console.error(error)
+      }
+    },
+    async completeOrder(orderId) {
+      try {
+        // Tìm đơn hàng
+        const orderIndex = this.orders.findIndex((order) => order.id === orderId)
+
+        if (orderIndex >= 0) {
+          // Gọi API để cập nhật trạng thái
+          await this.updateOrder(orderId, {
+            status: 'READY',
+          })
+
+          // Cập nhật UI
+          this.orders[orderIndex].status = 'READY'
+        }
+      } catch (error) {
+        this.error = 'Lỗi khi hoàn thành đơn hàng'
+        console.error(error)
       }
     },
   },

@@ -2,10 +2,14 @@ package com.example.easyoderba.Model.Entity.AuthEntity;
 
 
 import com.example.easyoderba.Model.Entity.BaseEntity;
+import com.example.easyoderba.Model.Entity.ProductEntity.InvoiceEntity;
+import com.example.easyoderba.Model.Entity.ProductEntity.OrderEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 
@@ -28,5 +32,8 @@ public class User extends BaseEntity {
 
     @ManyToMany
     Set<Role> roles;
+
+    @OneToMany(mappedBy = "user")
+    private Collection<InvoiceEntity> invoices;
 
 }

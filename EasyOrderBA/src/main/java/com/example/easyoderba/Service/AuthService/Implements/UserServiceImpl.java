@@ -55,6 +55,11 @@ public class UserServiceImpl implements UserService {
         });
         return userResponses;
     }
+    @Override
+    public UserResponse getUserByUserName(String userName) {
+        User user = userRepository.findByUsername(userName).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        return modelMapper.map(user, UserResponse.class);
+    }
 
 
     @Override
@@ -79,7 +84,10 @@ public class UserServiceImpl implements UserService {
             });
             user.setRoles(roles);
         }
+
         userRepository.save(user);
         return "Update Success";
     }
+
+
 }

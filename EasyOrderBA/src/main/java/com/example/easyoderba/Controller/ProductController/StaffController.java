@@ -1,6 +1,7 @@
 package com.example.easyoderba.Controller.ProductController;
 
 import com.example.easyoderba.Model.DTO.MessageDTO;
+import com.example.easyoderba.Model.DTO.request.ProductReq.OrderReq;
 import com.example.easyoderba.Model.DTO.response.AuthRes.ApiResponse;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,13 @@ public class StaffController {
     public ApiResponse<MessageDTO> callStaff(@RequestBody MessageDTO message) {
         return ApiResponse.<MessageDTO>builder()
                 .result(message)
+                .build();
+    }
+    @MessageMapping("/update-order")
+    @SendTo("/topic/staff")
+    public ApiResponse<OrderReq> updateOrder(@RequestBody OrderReq order) {
+        return ApiResponse.<OrderReq>builder()
+                .result(order)
                 .build();
     }
 }

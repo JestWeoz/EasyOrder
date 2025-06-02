@@ -36,6 +36,7 @@ public class ProductService {
         List<MultipartFile> images = productReq.getImages();
         ProductEntity product = productRepository.save(ProductEntity.builder()
                 .price(productReq.getPrice())
+                .status(1)
                 .category(categoryRepository.findById(productReq.getCategoryId()).orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND)))
                 .description(productReq.getDescription())
                 .name(productReq.getName())
@@ -48,13 +49,14 @@ public class ProductService {
                     .build();
             imageRepository.save(imageEntity);
         }
-        return "oke";
+        return "success";
     }
     public String updateProduct(ProductReq productReq) throws IOException {
         ProductEntity product = productRepository.findById(productReq.getId()).orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
         product.setPrice(productReq.getPrice());
         product.setCategory(categoryRepository.findById(productReq.getCategoryId()).orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND)));
         product.setDescription(productReq.getDescription());
+        product.setStatus(productReq.getStatus());
         product.setName(productReq.getName());
         if (productReq.getImages() != null) {
             List<MultipartFile> images = productReq.getImages();
@@ -96,5 +98,6 @@ public class ProductService {
         productRepository.deleteById(id);
         return "Success";
     }
+
 
 }
