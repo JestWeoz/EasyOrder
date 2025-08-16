@@ -1,0 +1,1 @@
+docker run --name easy_order --network tzjin-network -p 8081:8081 -e DBMS_URL=jdbc:mysql://mysql:3306/easyorder easy_order:0.0.1

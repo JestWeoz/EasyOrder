@@ -8,7 +8,7 @@ spring:
     password: 123456
   jpa:
     hibernate:
-      ddl-auto:
+      ddl-auto: none
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
@@ -23,5 +23,13 @@ cloudinary:
   cloud-name: dohgdvnuy
   api-key: 629845858442262
   api-secret: gB6Ld8Agabga0TuyOH1RD9_2BG0
+
+payos:
+  client-id: "bc02f977-4e1b-48b3-bcc6-12d54ae03c21"
+  api-key: "4d0c22a6-5f05-4223-bbde-2b6b5924ef88"
+  checksum-key: "de7b7b0d1c92da837edfbfa396f978d4ffcdaca63da41ca19fbe78917352d72b"
+
+
+
 jwt:
   signerKey: "YvaC4YtaTbPJ9kjAPkauqZ1HlkaqvAkz5jVeaxTGUTpm9YoNVGTU2c98XnWsQo6BLQ9h5n4HcySt0UcvmbBXiL0PpCedzXBxAn3+5FD83H4="

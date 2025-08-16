@@ -26,7 +26,7 @@ public class SecurityConfig {
 
     @Value("${jwt.signerKey}")
     private String signerKey;
-    private final String [] PUBLIC_ENDPOINTS = {"/auth/**" , "/ws/**", "/menu/**", "/table/**", "/order/**"};
+    private final String [] PUBLIC_ENDPOINTS = {"/auth/**" , "/ws/**", "/menu/**", "/table/**", "/order/**", "/**"};
     private static final String[] SWAGGER_URLS = {
             "/v2/api-docs",
             "/v3/api-docs",
@@ -48,7 +48,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.authorizeHttpRequests(request ->
-                request.requestMatchers(HttpMethod.GET,PUBLIC_ENDPOINTS).permitAll()
+                request.requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                         .requestMatchers(HttpMethod.POST,"auth/**", "order/**").permitAll()
                         .requestMatchers(HttpMethod.PUT, "order/**").permitAll()
                         .requestMatchers(SWAGGER_URLS).permitAll()
